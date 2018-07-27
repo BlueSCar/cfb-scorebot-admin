@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import axios from 'axios';
-axios.defaults.baseURL = `http://${process.env.HOST}`;
+axios.defaults.baseURL = `https://${process.env.HOST}`;
 Vue.prototype.$http = axios;
 
 import BootstrapVue from 'bootstrap-vue';
