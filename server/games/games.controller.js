@@ -27,16 +27,16 @@ module.exports = (db, cfb) => {
             awayRank: e.competitions[0].competitors.find(c => c.homeAway === 'away').curatedRank.current
           }
         }).sort((a, b) => {
-          let aMin = Math.min(a.homeRank == 0 ? 100 : a.homeRank, a.awayRank == 0 ? 100 : a.awayRank);
-          let bMin = Math.min(b.homeRank == 0 ? 100 : b.homeRank, b.awayRank == 0 ? 100 : b.awayRank);
+          // let aMin = Math.min(a.homeRank == 0 ? 100 : a.homeRank, a.awayRank == 0 ? 100 : a.awayRank);
+          // let bMin = Math.min(b.homeRank == 0 ? 100 : b.homeRank, b.awayRank == 0 ? 100 : b.awayRank);
 
-          if (aMin < bMin) {
-            return -1;
-          } else if (bMin < aMin) {
-            return 1;
-          } else {
+          // if (aMin < bMin) {
+          //   return -1;
+          // } else if (bMin < aMin) {
+          //   return 1;
+          // } else {
             return a.date < b.date ? -1 : b.date < a.date ? 1 : 0;
-          }
+          // }
         });
 
       res.send(games);
