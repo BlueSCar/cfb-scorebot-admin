@@ -49,6 +49,10 @@
 
 
 <style lang="scss">
+    body {
+        background: url('./assets/bg.jpg') no-repeat scroll;
+        background-attachment: fixed;
+    }
 
     .spinner-container {
         margin-top: 4em;
@@ -84,6 +88,8 @@
         -moz-osx-font-smoothing: grayscale;
         text-align: center;
         color: #2c3e50;
+        background: rgba(255, 255, 255, .5);
+        height: 100%;
     }
 
     #nav {

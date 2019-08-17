@@ -9,7 +9,7 @@ module.exports = (passport, crypto) => ({
             httpOnly: true,
             secure: process.env.NODE_ENV !== 'development',
             domain: process.env.JWT_DOMAIN,
-            maxAge: 7 * 24 * 60 * 60 * 1000
+            maxAge: 24 * 60 * 60 * 1000
         });
         res.redirect('/auth');
     },

@@ -22,6 +22,15 @@
                                         :value='channel.id'>#{{ channel.name }}</option>
                                 </b-form-select>
                             </b-row>
+                            <b-row class='mt-3 justify-content-center'>
+                                <div>Can't find your guild?</div>
+                            </b-row>
+                            <b-row class='justify-content-center'>
+                                <div><b-link href="https://discordapp.com/api/oauth2/authorize?client_id=472423746901377025&permissions=0&redirect_uri=http%3A%2F%2Fscorebot.collegefootballdata.com%2Fauth%2Fdiscord%2Fcallback&scope=bot">Click here to add cfb-risk-bot to your guild.</b-link></div>
+                            </b-row>
+                            <b-row class='justify-content-center'>
+                                <div>You may need to <b-link href='/auth/discord'>log back in</b-link> afterwards.</div>
+                            </b-row>
                         </b-col>
                         <b-col />
                     </b-row>
@@ -49,6 +58,9 @@
                             </b-row>
                         </template>
                     </b-table>
+                    <div class='spinner-container' v-if='isLoading'>
+                        <b-spinner variant="primary" label="Spinning" style="width: 5em; height: 5em;" />
+                    </div>
                 </b-card>
             </b-col>
         </b-row>
@@ -63,7 +75,8 @@
                 selectedGuild: null,
                 selectedChannel: null,
                 channels: [],
-                fields: ["tracked", "date", "matchup"]
+                fields: ["tracked", "date", "matchup"],
+                isLoading: false
             };
         },
         methods: {
@@ -89,12 +102,16 @@
                 }
             },
             gamesProvider() {
+                this.isLoading = true;
+
                 return this.$axios.get('/api/games', {
                     params: {
                         guildId: this.selectedGuild
                     }
                 }).then((response) => {
                     return response.data;
+                }).finally(() => {
+                    this.isLoading = false;
                 });
             },
             toggleGame(id, active) {
