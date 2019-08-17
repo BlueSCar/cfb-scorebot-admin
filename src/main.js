@@ -1,31 +1,15 @@
 import Vue from 'vue';
-import axios from 'axios';
-axios.defaults.baseURL = `https://${process.env.HOST}`;
-Vue.prototype.$http = axios;
+import App from './App.vue';
+import router from './router';
+import './plugins/bootstrap-vue';
+import './plugins/fontawesome';
+import './plugins/axios';
+import './plugins/vue-moment';
 
-import BootstrapVue from 'bootstrap-vue';
-import "bootstrap/dist/css/bootstrap.min.css"
-import "bootstrap-vue/dist/bootstrap-vue.css";
+Vue.config.productionTip = false;
+Vue.config.devtools = process.env.DEV_TOOLS === 'development';
 
-import VueMoment from 'vue-moment';
-
-import App from './App.vue'
-import { createRouter } from './router/router.js'
-
-Vue.use(BootstrapVue);
-Vue.use(VueMoment);
-
-// export a factory function for creating fresh app, router and store
-// instances
-export function createApp() {
-    // create router instance
-    const router = createRouter();
-
-    const app = new Vue({
-        router,
-        // the root instance simply renders the App component.
-        render: h => h(App)
-    });
-
-    return { app, router };
-}
+new Vue({
+    router,
+    render: h => h(App)
+}).$mount('#app');

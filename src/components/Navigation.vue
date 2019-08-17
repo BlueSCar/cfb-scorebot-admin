@@ -1,12 +1,19 @@
 <template>
     <div>
-        <b-navbar toggleable="md" type="light">
+        <b-navbar toggleable="md" type="dark" variant="secondary">
             <b-navbar-toggle target="nav_collapse"></b-navbar-toggle>
-            <b-navbar-brand>CFB Scores Admin</b-navbar-brand>
+            <b-navbar-brand to="/">Scorebot Admin</b-navbar-brand>
         </b-navbar>
     </div>
 </template>
+
 <script>
     export default {
+
     };
+
 </script>
+
+<style lang="scss">
+
+</style>
