@@ -49,7 +49,7 @@ module.exports = async (db) => {
     const addBroadcastChannel = async (guildId, channelId) => {
         const existing = await db.oneOrNone('SELECT * FROM guild_channel WHERE guild_id = $1', [guildId]);
         if (existing) {
-            await db.none('UPDATE guild_channel SET channel_id = $1 WHERE id = $2', [existing.id, channelId]);
+            await db.none('UPDATE guild_channel SET channel_id = $1 WHERE id = $2', [channelId, existing.id]);
         } else {
             await db.none('INSERT INTO guild_channel (guild_id, channel_id) VALUES ($1, $2)', [guildId, channelId]);
         }
