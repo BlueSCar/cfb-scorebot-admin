@@ -35,10 +35,16 @@ module.exports = async (db) => {
                     id: discordGuild.id,
                     name: discordGuild.name,
                     selectedChannelId,
-                    channels: discordGuild.channels.map(c => ({
+                    channels: discordGuild.channels.filter(c => c.type === 'text').map(c => ({
                         id: c.id,
                         name: c.name
-                    }))
+                    })).sort((a, b) => {
+                        if (a.name < b.name) {
+                            return -1;
+                        }
+
+                        return 1;
+                    })
                 });
             }
         }
