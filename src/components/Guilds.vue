@@ -85,8 +85,11 @@
                 if (!guildId) {
                     this.channels = null;
                     this.selectedChannel = null;
+                    this.games = [];
                     return;
                 }
+
+                this.refreshGames(guildId);
 
                 let guild = this.guilds.find(g => g.id == guildId);
                 if (guild) {
@@ -102,12 +105,12 @@
                     });
                 }
             },
-            refreshGames() {
+            refreshGames(guildId) {
                 this.isLoading = true;
 
                 return this.$axios.get('/api/games', {
                     params: {
-                        guildId: this.selectedGuild
+                        guildId
                     }
                 }).then((response) => {
                     this.games = response.data;
