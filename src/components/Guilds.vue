@@ -40,7 +40,7 @@
         <b-row v-if='this.selectedGuild && this.selectedChannel'>
             <b-col>
                 <b-card>
-                    <b-table id="GamesTable" :items="gamesProvider" :fields="fields">
+                    <b-table id="GamesTable" :items="games" :fields="fields">
                         <template slot="tracked" slot-scope="row">
                             <b-form-checkbox @click.native.stop
                                 @change="toggleGame(row.item.id, row.item.active)"
@@ -76,7 +76,8 @@
                 selectedChannel: null,
                 channels: [],
                 fields: ["tracked", "date", "matchup"],
-                isLoading: false
+                isLoading: false,
+                games: []
             };
         },
         methods: {
@@ -101,7 +102,7 @@
                     });
                 }
             },
-            gamesProvider() {
+            refreshGames() {
                 this.isLoading = true;
 
                 return this.$axios.get('/api/games', {
@@ -109,7 +110,7 @@
                         guildId: this.selectedGuild
                     }
                 }).then((response) => {
-                    return response.data;
+                    this.games = response.data;
                 }).finally(() => {
                     this.isLoading = false;
                 });
