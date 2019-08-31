@@ -22,7 +22,7 @@
                                         :value='channel.id'>#{{ channel.name }}</option>
                                 </b-form-select>
                             </b-row>
-                            <b-row>
+                            <b-row class='justify-content-center'>
                                 <b-form-checkbox@click.native.stop @change="toggleCloseGamesBroadcast()" v-model="closeGamesToggle">Broadcast close games</b-form-checkbox>
                             </b-row>
                             <b-row class='mt-3 justify-content-center'>
