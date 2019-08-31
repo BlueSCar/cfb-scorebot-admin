@@ -38,9 +38,21 @@ module.exports = async (db) => {
         }
     };
 
+    const toggleBroadcastCloseGames = async (req, res) => {
+        if (!req.body.guildId || req.body.broadcastCloseGames == null || req.body.broadcastCloseGames == undefined) {
+            res.sendStatus(400);
+        } else if (req.isAuthenticated() && req.user && req.user.guilds.find(g => g.id == req.body.guildId)) {
+            await service.toggleBroadcastCloseGames(req.body.guildId, req.body.broadcastCloseGames);
+            res.sendStatus(200);
+        } else {
+            res.sendStatus(403);
+        }
+    };
+
     return {
         getChannels,
         getUserGuilds,
-        addBroadcastChannel
+        addBroadcastChannel,
+        toggleBroadcastCloseGames
     };
 };

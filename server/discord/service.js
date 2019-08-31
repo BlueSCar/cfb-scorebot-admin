@@ -30,11 +30,13 @@ module.exports = async (db) => {
             if (discordGuild) {
                 const selectedChannel = channelRecords.find(r => r.guild_id == discordGuild.id);
                 const selectedChannelId = selectedChannel ? selectedChannel.channel_id : null;
+                const broadcastCloseGames = selectedChannel ? selectedChannel.close_game_alerts : true;
 
                 guilds.push({
                     id: discordGuild.id,
                     name: discordGuild.name,
                     selectedChannelId,
+                    broadcastCloseGames,
                     channels: discordGuild.channels.filter(c => c.type === 'text').map(c => ({
                         id: c.id,
                         name: c.name
@@ -57,13 +59,18 @@ module.exports = async (db) => {
         if (existing) {
             await db.none('UPDATE guild_channel SET channel_id = $1 WHERE id = $2', [channelId, existing.id]);
         } else {
-            await db.none('INSERT INTO guild_channel (guild_id, channel_id) VALUES ($1, $2)', [guildId, channelId]);
+            await db.none('INSERT INTO guild_channel (guild_id, channel_id, close_game_alerts) VALUES ($1, $2, $3)', [guildId, channelId, true]);
         }
+    };
+
+    const toggleBroadcastCloseGames = async (guildId, broadcastCloseGames) => {
+        await db.none('UPDATE guild_channel SET close_game_alerts = $1 WHERE guild_id = $2', [broadcastCloseGames, guildId]);
     };
 
     return {
         getChannels,
         getUserGuilds,
-        addBroadcastChannel
+        addBroadcastChannel,
+        toggleBroadcastCloseGames
     };
 };

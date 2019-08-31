@@ -22,6 +22,9 @@
                                         :value='channel.id'>#{{ channel.name }}</option>
                                 </b-form-select>
                             </b-row>
+                            <b-row>
+                                <b-form-checkbox@click.native.stop @change="toggleCloseGamesBroadcast()" v-model="closeGamesToggle">Broadcast close games</b-form-checkbox>
+                            </b-row>
                             <b-row class='mt-3 justify-content-center'>
                                 <div>Can't find your guild?</div>
                             </b-row>
@@ -74,6 +77,7 @@
             return {
                 selectedGuild: null,
                 selectedChannel: null,
+                closeGamesToggle: true,
                 channels: [],
                 fields: ["tracked", "date", "matchup"],
                 isLoading: false,
@@ -95,6 +99,7 @@
                 if (guild) {
                     this.channels = guild.channels;
                     this.selectedChannel = guild.selectedChannelId;
+                    this.closeGamesToggle = guild.broadcastCloseGames;
                 }
             },
             onChannelSelect(channelId) {
@@ -124,6 +129,14 @@
                     active: !active,
                     guildId: this.selectedGuild
                 });
+            },
+            toggleCloseGamesBroadcast() {
+                if (this.selectedGuild) {
+                    this.$axios.post('/api/discord/closegames/toggle', {
+                        guildId: this.selectedGuild,
+                        broadcastCloseGames: !this.closeGamesToggle
+                    });
+                }
             }
         }
     };
