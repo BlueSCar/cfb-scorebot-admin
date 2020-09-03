@@ -20,7 +20,7 @@ module.exports = (db) => {
 
         const games = scoreboard
             .events
-            .filter(e => !e.status.type.completed)
+            .filter(e => !e.status.type.completed && e.status.type.id != 6)
             .map((e) => {
                 const activeGame = guildGames.find(ag => ag.game_id == e.id);
 
