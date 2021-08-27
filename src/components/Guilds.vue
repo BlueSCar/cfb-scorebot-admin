@@ -44,20 +44,20 @@
             <b-col>
                 <b-card>
                     <b-table id="GamesTable" :items="games" :fields="fields">
-                        <template slot="tracked" slot-scope="row">
+                        <template #cell(tracked)='data'>
                             <b-form-checkbox @click.native.stop
-                                @change="toggleGame(row.item.id, row.item.active)"
-                                v-model="row.item.active">
+                                @change="toggleGame(data.item.id, data.item.active)"
+                                v-model="data.item.active">
                             </b-form-checkbox>
                         </template>
-                        <template slot="date" slot-scope="data">
+                        <template #cell(date)='data'>
                             <span>{{data.value | moment('LLLL')}}</span>
                         </template>
-                        <template slot="matchup" slot-scope="row">
+                        <template #cell(matchup)='data'>
                             <b-row>
-                                <b-img :src="row.item.awayLogo" width="25px" height="25px"></b-img>
-                                {{row.item.name}}
-                                <b-img :src="row.item.homeLogo" width="25px" height="25px"></b-img>
+                                <b-img :src="data.item.awayLogo" width="25px" height="25px"></b-img>
+                                {{data.item.name}}
+                                <b-img :src="data.item.homeLogo" width="25px" height="25px"></b-img>
                             </b-row>
                         </template>
                     </b-table>

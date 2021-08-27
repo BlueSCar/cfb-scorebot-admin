@@ -90,6 +90,7 @@
         color: #2c3e50;
         background: rgba(255, 255, 255, .5);
         height: 100%;
+        padding-bottom: 15em;
     }
 
     #nav {
