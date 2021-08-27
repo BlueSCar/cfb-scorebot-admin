@@ -10,7 +10,7 @@ const authRoutes = require('./auth/routes');
 const discordRoutes = require('./discord/routes');
 const gameRoutes = require('./games/routes');
 
-module.exports = async (db, passport, rabbit) => {
+module.exports = async (db, passport, cfb) => {
     const app = express();
     app.use(helmet());
 
@@ -35,7 +35,7 @@ module.exports = async (db, passport, rabbit) => {
     // routes
     authRoutes(app, passport, auth);
     await discordRoutes(app, auth, db);
-    gameRoutes(app, auth, db);
+    gameRoutes(app, auth, db, cfb);
 
     app.use(history());
 

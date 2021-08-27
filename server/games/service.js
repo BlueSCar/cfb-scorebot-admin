@@ -1,40 +1,52 @@
-const cfb = require('cfb-data');
-
-module.exports = (db) => {
+module.exports = (db, cfb) => {
     const getGames = async (guildId) => {
         const guildGames = await db.any('SELECT * FROM guild_game WHERE guild_id = $1',
             [
                 guildId
             ]);
-        let scoreboard = null;
-
-        do {
-            try {
-                scoreboard = await cfb.scoreboard.getScoreboard({ // eslint-disable-line
-                    groups: 80
-                });
-            } catch (err) {
-                // do nothing
-            }
-        } while (!scoreboard);
+        let scoreboard = await cfb.any(`
+        WITH this_week AS (
+            SELECT DISTINCT season, season_type, week
+            FROM game
+            WHERE start_date > (now() - interval '10h')
+            ORDER BY season, season_type DESC, week
+            LIMIT 1
+        )
+        SELECT g.id, g.start_date, g.neutral_site, t.id AS home_id, t.display_name AS home_team, pr.rank AS home_rank, c.name AS home_conference, t2.id AS away_id, t2.display_name AS away_team, pr2.rank AS away_rank, c2.name AS away_conference
+        FROM game AS g
+            INNER JOIN this_week AS tw ON g.season = tw.season AND g.week = tw.week AND g.season_type = tw.season_type
+            INNER JOIN game_team AS gt ON g.id = gt.game_id AND gt.home_away = 'home'
+            INNER JOIN team AS t ON gt.team_id = t.id
+            INNER JOIN game_team AS gt2 ON g.id = gt2.game_id AND gt.id <> gt2.id
+            INNER JOIN team AS t2 ON gt2.team_id = t2.id
+            LEFT JOIN poll AS p ON p.season = g.season AND p.week = g.week AND p.season_type = g.season_type AND p.poll_type_id = 1
+            LEFT JOIN poll_rank AS pr ON p.id = pr.poll_id AND t.id = pr.team_id
+            LEFT JOIN poll_rank AS pr2 ON p.id = pr2.poll_id AND t2.id = pr2.team_id
+            LEFT JOIN conference_team AS ct ON t.id = ct.team_id AND ct.start_year <= g.season AND (ct.end_year IS NULL OR ct.end_year >= g.season)
+            LEFT JOIN conference AS c ON ct.conference_id = c.id
+            LEFT JOIN conference_team AS ct2 ON t2.id = ct2.team_id AND ct2.start_year <= g.season AND (ct2.end_year IS NULL OR ct2.end_year >= g.season)
+            LEFT JOIN conference AS c2 ON ct2.conference_id = c2.id
+        WHERE g.start_date > (now() - interval '10h') AND gt.points IS NULL OR gt2.points IS NULL
+        ORDER BY start_date
+        `);
 
         const games = scoreboard
-            .events
-            .filter(e => !e.status.type.completed && e.status.type.id != 6)
             .map((e) => {
                 const activeGame = guildGames.find(ag => ag.game_id == e.id);
 
                 return {
                     id: e.id,
                     active: activeGame != null,
-                    name: e.name,
-                    date: e.date,
-                    homeLogo: e.competitions[0].competitors.find(c => c.homeAway === 'home').team.logo,
-                    awayLogo: e.competitions[0].competitors.find(c => c.homeAway === 'away').team.logo,
-                    homeRank: e.competitions[0].competitors.find(c => c.homeAway === 'home').curatedRank.current,
-                    awayRank: e.competitions[0].competitors.find(c => c.homeAway === 'away').curatedRank.current
+                    name: `${e.away_team} ${e.neutral_site ? 'vs' : 'at'} ${e.home_team}`,
+                    date: e.start_date,
+                    homeLogo: `https://collegefootballdata.com/logos/${e.home_id}.png`,
+                    awayLogo: `https://collegefootballdata.com/logos/${e.away_id}.png`,
+                    homeConference: e.home_conference,
+                    homeRank: e.home_rank,
+                    awayConference: e.away_conference,
+                    awayRank: e.away_rank
                 };
-            }).sort((a, b) => a.date < b.date ? -1 : b.date < a.date ? 1 : 0); // eslint-disable-line
+            }); // eslint-disable-line
 
         return games;
     };

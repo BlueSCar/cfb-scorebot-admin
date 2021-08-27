@@ -15,10 +15,10 @@ const consumerConfig = require('./server/consumers');
 
     const port = process.env.SERVER_PORT;
 
-    const db = dbConfig(bluebird, pgp);
+    const dbs = dbConfig(bluebird, pgp);
     const rabbit = await rabbitConfig(amqp);
-    passportConfig(passport, db);
-    const app = await expressConfig(db, passport);
+    passportConfig(passport, dbs.db);
+    const app = await expressConfig(dbs.db, passport, dbs.cfb);
 
     await consumerConfig(rabbit.channel);
 

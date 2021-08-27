@@ -1,7 +1,7 @@
 const serviceConstructor = require('./service');
 
-module.exports = (db) => {
-    const service = serviceConstructor(db);
+module.exports = (db, cfb) => {
+    const service = serviceConstructor(db, cfb);
 
     const getGames = async (req, res) => {
         if (!req.query.guildId) {
