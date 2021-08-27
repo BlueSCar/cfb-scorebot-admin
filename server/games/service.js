@@ -39,6 +39,8 @@ module.exports = (db, cfb) => {
                     active: activeGame != null,
                     name: `${e.away_team} ${e.neutral_site ? 'vs' : 'at'} ${e.home_team}`,
                     date: e.start_date,
+                    homeTeam: e.home_team,
+                    awayTeam: e.away_team,
                     homeLogo: `https://collegefootballdata.com/logos/${e.home_id}.png`,
                     awayLogo: `https://collegefootballdata.com/logos/${e.away_id}.png`,
                     homeConference: e.home_conference,
@@ -61,8 +63,33 @@ module.exports = (db, cfb) => {
         }
     };
 
+    const toggleAllGames = async (guildId) => {
+        if (!/^\d+$/.test(guildId) || !parseInt(guildId)) {
+            return;
+        }
+
+        let games = await cfb.any(`
+        WITH this_week AS (
+            SELECT DISTINCT season, season_type, week
+            FROM game
+            WHERE start_date > (now() - interval '10h')
+            ORDER BY season, season_type DESC, week
+            LIMIT 1
+        )
+        SELECT g.id
+        FROM game AS g
+            INNER JOIN this_week AS tw ON g.season = tw.season AND g.week = tw.week AND g.season_type = tw.season_type
+        `);
+
+        let existing = await db.any('SELECT game_id FROM guild_game WHERE guild_id = $1 AND game_id IN ($2:csv)', [guildId, games.map(g => g.id)]);
+        let inserts = games.filter(g => !existing.find(e => e.game_id == g.id)).map(g => `(${guildId},${g.id})`);
+
+        await db.none(`INSERT INTO guild_game (guild_id, game_id) VALUES ` + inserts.join(', '));
+    };
+
     return {
         getGames,
-        toggleGame
+        toggleGame,
+        toggleAllGames
     };
 };

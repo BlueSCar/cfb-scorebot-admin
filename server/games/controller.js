@@ -25,8 +25,20 @@ module.exports = (db, cfb) => {
         }
     };
 
+    const toggleAllGames = async (req, res) => {
+        if (!req.body.guildId) {
+            res.sendStatus(400);
+        } else if (req.isAuthenticated() && req.user && req.user.guilds.find(g => g.id == req.body.guildId)) {
+            await service.toggleAllGames(req.body.guildId);
+            res.sendStatus(200);
+        } else {
+            res.sendStatus(403);
+        }
+    };
+
     return {
         getGames,
-        toggleGame
+        toggleGame,
+        toggleAllGames
     };
 };

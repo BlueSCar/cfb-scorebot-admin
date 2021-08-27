@@ -43,7 +43,23 @@
         <b-row v-if='this.selectedGuild && this.selectedChannel'>
             <b-col>
                 <b-card>
-                    <b-table id="GamesTable" :items="games" :fields="fields">
+                    <b-row>
+                        <b-col md='4'>
+                            <b-button @click="selectAllGames">Select All Games</b-button>
+                        </b-col>
+                        <b-col md='8'>
+                            <h4>Game Search</h4>
+                            <b-input placeholder="Start typing a team or conference game to filter games" v-model='searchTerm'>
+                            </b-input>
+                        </b-col>
+                    </b-row>
+                </b-card>
+            </b-col>
+        </b-row>
+        <b-row v-if='this.selectedGuild && this.selectedChannel'>
+            <b-col>
+                <b-card>
+                    <b-table id="GamesTable" :items="tableItems" :fields="fields">
                         <template #cell(tracked)='data'>
                             <b-form-checkbox @click.native.stop
                                 @change="toggleGame(data.item.id, data.item.active)"
@@ -81,7 +97,8 @@
                 channels: [],
                 fields: ["tracked", "date", "matchup"],
                 isLoading: false,
-                games: []
+                games: [],
+                searchTerm: ''
             };
         },
         methods: {
@@ -126,7 +143,7 @@
             toggleGame(id, active) {
                 this.$axios.post('api/game/toggle', {
                     gameId: id,
-                    active: !active,
+                    active: active,
                     guildId: this.selectedGuild
                 });
             },
@@ -134,8 +151,26 @@
                 if (this.selectedGuild) {
                     this.$axios.post('/api/discord/closegames/toggle', {
                         guildId: this.selectedGuild,
-                        broadcastCloseGames: !this.closeGamesToggle
+                        broadcastCloseGames: this.closeGamesToggle
                     });
+                }
+            },
+            selectAllGames() {
+                this.$axios.post('/api/games/all', {
+                    guildId: this.selectedGuild
+                }).then((res) => {
+                    for (let game of this.games) {
+                        game.active = true;
+                    }
+                });
+            }
+        },
+        computed: {
+            tableItems() {
+                if (!this.searchTerm) {
+                    return this.games;
+                } else {
+                    return this.games.filter(g => g.homeTeam.toLowerCase().indexOf(this.searchTerm.toLowerCase()) !== -1 || g.awayTeam.toLowerCase().indexOf(this.searchTerm.toLowerCase()) !== -1 || (g.homeConference && g.homeConference.toLowerCase().indexOf(this.searchTerm.toLowerCase()) !== -1) || (g.awayConference && g.awayConference.toLowerCase().indexOf(this.searchTerm.toLowerCase()) !== -1));
                 }
             }
         }
