@@ -25,6 +25,9 @@
                             <b-row class='justify-content-center'>
                                 <b-form-checkbox@click.native.stop @change="toggleCloseGamesBroadcast()" v-model="closeGamesToggle">Broadcast close games</b-form-checkbox>
                             </b-row>
+                            <b-row class='justify-content-center'>
+                                <b-form-checkbox@click.native.stop @change="toggleAllFBSGamesBroadcast()" v-model="fbsGamesToggle">Broadcast all FBS games</b-form-checkbox>
+                            </b-row>
                             <b-row class='mt-3 justify-content-center'>
                                 <div>Can't find your guild?</div>
                             </b-row>
@@ -44,10 +47,7 @@
             <b-col>
                 <b-card>
                     <b-row>
-                        <b-col md='4'>
-                            <b-button @click="selectAllGames">Select All Games</b-button>
-                        </b-col>
-                        <b-col md='8'>
+                        <b-col md='12'>
                             <h4>Game Search</h4>
                             <b-input placeholder="Start typing a team or conference game to filter games" v-model='searchTerm'>
                             </b-input>
@@ -62,6 +62,7 @@
                     <b-table id="GamesTable" :items="tableItems" :fields="fields">
                         <template #cell(tracked)='data'>
                             <b-form-checkbox @click.native.stop
+                                :disabled="fbsGamesToggle"
                                 @change="toggleGame(data.item.id, data.item.active)"
                                 v-model="data.item.active">
                             </b-form-checkbox>
@@ -94,6 +95,7 @@
                 selectedGuild: null,
                 selectedChannel: null,
                 closeGamesToggle: true,
+                fbsGamesToggle: false,
                 channels: [],
                 fields: ["tracked", "date", "matchup"],
                 isLoading: false,
@@ -117,6 +119,7 @@
                     this.channels = guild.channels;
                     this.selectedChannel = guild.selectedChannelId;
                     this.closeGamesToggle = guild.broadcastCloseGames;
+                    this.fbsGamesToggle = guild.broadcastAllFBS;
                 }
             },
             onChannelSelect(channelId) {
@@ -141,11 +144,13 @@
                 });
             },
             toggleGame(id, active) {
-                this.$axios.post('api/game/toggle', {
-                    gameId: id,
-                    active: active,
-                    guildId: this.selectedGuild
-                });
+                if (!this.fbsGamesToggle) {
+                    this.$axios.post('api/game/toggle', {
+                        gameId: id,
+                        active: active,
+                        guildId: this.selectedGuild
+                    });
+                }
             },
             toggleCloseGamesBroadcast() {
                 if (this.selectedGuild) {
@@ -155,14 +160,24 @@
                     });
                 }
             },
+            toggleAllFBSGamesBroadcast() {
+                if (this.selectedGuild) {
+                    this.$axios.post('/api/discord/allfbs/toggle', {
+                        guildId: this.selectedGuild,
+                        broadcastAllFBSGames: this.fbsGamesToggle
+                    });
+                }
+            },
             selectAllGames() {
-                this.$axios.post('/api/games/all', {
-                    guildId: this.selectedGuild
-                }).then((res) => {
-                    for (let game of this.games) {
-                        game.active = true;
-                    }
-                });
+                if (!this.fbsGamesToggle) {
+                    this.$axios.post('/api/games/all', {
+                        guildId: this.selectedGuild
+                    }).then((res) => {
+                        for (let game of this.games) {
+                            game.active = true;
+                        }
+                    });
+                }
             }
         },
         computed: {

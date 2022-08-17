@@ -33,12 +33,14 @@ module.exports = async (db) => {
                 const selectedChannel = channelRecords.find(r => r.guild_id == discordGuild.id);
                 const selectedChannelId = selectedChannel ? selectedChannel.channel_id : null;
                 const broadcastCloseGames = selectedChannel ? selectedChannel.close_game_alerts : true;
+                const broadcastAllFBS = selectedChannel ? selectedChannel.broadcast_all_fbs : false;
 
                 guilds.push({
                     id: discordGuild.id,
                     name: discordGuild.name,
                     selectedChannelId,
                     broadcastCloseGames,
+                    broadcastAllFBS,
                     channels: discordGuild.channels.cache.filter(c => c.type === 0).map(c => ({
                         id: c.id,
                         name: c.name
@@ -69,10 +71,15 @@ module.exports = async (db) => {
         await db.none('UPDATE guild_channel SET close_game_alerts = $1 WHERE guild_id = $2', [broadcastCloseGames, guildId]);
     };
 
+    const toggleBroadcastAllFBSGames = async (guildId, broadcastAllFBS) => {
+        await db.none('UPDATE guild_channel SET broadcast_all_fbs = $1 WHERE guild_id = $2', [broadcastAllFBS, guildId]);
+    };
+
     return {
         getChannels,
         getUserGuilds,
         addBroadcastChannel,
-        toggleBroadcastCloseGames
+        toggleBroadcastCloseGames,
+        toggleBroadcastAllFBSGames
     };
 };

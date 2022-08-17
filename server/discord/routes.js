@@ -6,4 +6,5 @@ module.exports = async (app, auth, db) => {
     app.route('/api/discord/guilds').get(auth, controller.getUserGuilds);
     app.route('/api/discord/channel').post(auth, controller.addBroadcastChannel);
     app.route('/api/discord/closegames/toggle').post(auth, controller.toggleBroadcastCloseGames);
+    app.route('/api/discord/allfbs/toggle').post(auth, controller.toggleBroadcastAllFBSGames);
 };
