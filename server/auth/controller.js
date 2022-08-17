@@ -14,7 +14,7 @@ module.exports = (passport, crypto) => ({
         res.redirect('/auth');
     },
     authDiscord: (req, res, next) => {
-        req.logout();
+        req.logout(err => console.error);
         passport.authenticate('discord', {
             state: crypto.randomBytes(32).toString('hex'),
             session: false,

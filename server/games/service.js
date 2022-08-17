@@ -26,7 +26,7 @@ module.exports = (db, cfb) => {
             LEFT JOIN conference AS c ON ct.conference_id = c.id
             LEFT JOIN conference_team AS ct2 ON t2.id = ct2.team_id AND ct2.start_year <= g.season AND (ct2.end_year IS NULL OR ct2.end_year >= g.season)
             LEFT JOIN conference AS c2 ON ct2.conference_id = c2.id
-        WHERE g.start_date > (now() - interval '10h') AND gt.points IS NULL OR gt2.points IS NULL
+        WHERE g.start_date > (now() - interval '10h') AND (gt.points IS NULL OR gt2.points IS NULL) AND (c.division = 'fbs' or c2.division = 'fbs')
         ORDER BY start_date
         `);
 
@@ -79,6 +79,15 @@ module.exports = (db, cfb) => {
         SELECT g.id
         FROM game AS g
             INNER JOIN this_week AS tw ON g.season = tw.season AND g.week = tw.week AND g.season_type = tw.season_type
+            INNER JOIN game_team AS gt ON g.id = gt.game_id AND gt.home_away = 'home'
+            INNER JOIN team AS t ON gt.team_id = t.id
+            INNER JOIN game_team AS gt2 ON g.id = gt2.game_id AND gt.id <> gt2.id
+            INNER JOIN team AS t2 ON gt2.team_id = t2.id
+            LEFT JOIN conference_team AS ct ON t.id = ct.team_id AND ct.start_year <= g.season AND (ct.end_year IS NULL OR ct.end_year >= g.season)
+            LEFT JOIN conference AS c ON ct.conference_id = c.id
+            LEFT JOIN conference_team AS ct2 ON t2.id = ct2.team_id AND ct2.start_year <= g.season AND (ct2.end_year IS NULL OR ct2.end_year >= g.season)
+            LEFT JOIN conference AS c2 ON ct2.conference_id = c2.id
+        WHERE c.division = 'fbs' OR c2.division = 'fbs'
         `);
 
         let existing = await db.any('SELECT game_id FROM guild_game WHERE guild_id = $1 AND game_id IN ($2:csv)', [guildId, games.map(g => g.id)]);
