@@ -1,8 +1,10 @@
+const { GatewayIntentBits } = require('discord.js');
 const Discord = require('discord.js');
 
 module.exports = async (db) => {
     const client = new Discord.Client({
-        apiRequestMethod: 'burst'
+        apiRequestMethod: 'burst',
+        intents: [GatewayIntentBits.Guilds]
     });
 
     await client.login(process.env.DISCORD_TOKEN).catch(err => console.error(err));
@@ -26,7 +28,7 @@ module.exports = async (db) => {
 
         const channelRecords = await db.any('SELECT * FROM guild_channel WHERE guild_id in ($1:list)', [user.guilds.map(g => g.id)]);
         for (const guild of user.guilds) {
-            const discordGuild = client.guilds.get(guild.id);
+            const discordGuild = client.guilds.cache.get(guild.id);
             if (discordGuild) {
                 const selectedChannel = channelRecords.find(r => r.guild_id == discordGuild.id);
                 const selectedChannelId = selectedChannel ? selectedChannel.channel_id : null;
@@ -37,7 +39,7 @@ module.exports = async (db) => {
                     name: discordGuild.name,
                     selectedChannelId,
                     broadcastCloseGames,
-                    channels: discordGuild.channels.filter(c => c.type === 'text').map(c => ({
+                    channels: discordGuild.channels.cache.filter(c => c.type === 0).map(c => ({
                         id: c.id,
                         name: c.name
                     })).sort((a, b) => {
