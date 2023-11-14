@@ -11,7 +11,7 @@ module.exports = (db, cfb) => {
                 INNER JOIN game_team AS gt ON g.id = gt.game_id
                  INNER JOIN current_conferences AS cc ON gt.team_id = cc.team_id AND cc.classification = 'fbs'
             WHERE g.start_date > (now() - interval '2d')
-            ORDER BY g.season, g.season_type DESC, g.week
+            ORDER BY g.season, g.season_type, g.week
             LIMIT 1
         )
         SELECT g.id, g.start_date, g.neutral_site, t.id AS home_id, t.display_name AS home_team, pr.rank AS home_rank, c.name AS home_conference, t2.id AS away_id, t2.display_name AS away_team, pr2.rank AS away_rank, c2.name AS away_conference
@@ -77,7 +77,7 @@ module.exports = (db, cfb) => {
                 INNER JOIN game_team AS gt ON g.id = gt.game_id
                  INNER JOIN current_conferences AS cc ON gt.team_id = cc.team_id AND cc.classification = 'fbs'
             WHERE g.start_date > (now() - interval '2d')
-            ORDER BY g.season, g.season_type DESC, g.week
+            ORDER BY g.season, g.season_type, g.week
             LIMIT 1
         )
         SELECT g.id
