@@ -3,6 +3,8 @@ const jwt = require('jsonwebtoken');
 
 const adminPermission = 0x00000008;
 
+const environment = process.env.NODE_ENV || 'development';
+
 module.exports = (passport) => {
     const appId = process.env.DISCORD_ID;
     const appSecret = process.env.DISCORD_SECRET;
@@ -11,7 +13,7 @@ module.exports = (passport) => {
     passport.use(new DiscordStrategy({
         clientID: appId,
         clientSecret: appSecret,
-        callbackURL: `http://${webHost}/auth/discord/callback`,
+        callbackURL: environment === 'production' ? `https://${webHost}/auth/discord/callback` : `http://${webHost}/auth/discord/callback`,
         scope: 'identify guilds',
         passReqToCallback: true
     }, (req, accessToken, refreshToken, profile, done) => {
