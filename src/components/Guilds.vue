@@ -32,7 +32,7 @@
                                 <div>Can't find your guild?</div>
                             </b-row>
                             <b-row class='justify-content-center'>
-                                <div><b-link href="https://discordapp.com/api/oauth2/authorize?client_id=472423746901377025&permissions=0&redirect_uri=http%3A%2F%2Fscorebot.collegefootballdata.com%2Fauth%2Fdiscord%2Fcallback&scope=bot">Click here to add cfb-risk-bot to your guild.</b-link></div>
+                                <div><b-link href="https://discord.com/oauth2/authorize?client_id=472423746901377025">Click here to add cfb-risk-bot to your guild.</b-link></div>
                             </b-row>
                             <b-row class='justify-content-center'>
                                 <div>You may need to <b-link href='/auth/discord'>log back in</b-link> afterwards.</div>
