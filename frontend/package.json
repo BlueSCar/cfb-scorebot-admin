@@ -1,0 +1,33 @@
+{
+  "name": "@cfbd/scorebot-admin-frontend",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "start": "node .output/server/index.mjs"
+  },
+  "dependencies": {
+    "@pinia/nuxt": "^0.5.4",
+    "@primevue/themes": "^4.0.7",
+    "@sidebase/nuxt-auth": "^0.9.3",
+    "dayjs": "^1.11.13",
+    "next-auth": "4.21.1",
+    "nuxt": "^3.13.0",
+    "primeflex": "^3.3.1",
+    "primeicons": "^7.0.0",
+    "primevue": "^4.0.7",
+    "vue": "latest",
+    "vue-router": "latest"
+  },
+  "devDependencies": {
+    "@primevue/nuxt-module": "^4.0.7",
+    "sass": "^1.79.3"
+  },
+  "overrides": {
+    "vue": "latest"
+  }
+}

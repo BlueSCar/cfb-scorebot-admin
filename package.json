@@ -1,0 +1,27 @@
+{
+  "name": "@cfbd/scorebot-admin",
+  "version": "1.0.0",
+  "private": true,
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "pnpm --stream -r run build",
+    "dev": "pnpm --parallel --stream -r run dev",
+    "lint": "eslint  --ignore-path .gitignore .",
+    "lint:fix": "eslint --ignore-path .gitignore . --fix",
+    "prettier-check": "prettier -c --ignore-path .gitignore \"**/*.{css,html,js,json,md,yaml,yml,ts}\"",
+    "prettier-check:updated": "pipe-git-updated --base=main --ext=css --ext=html --ext=js --ext=ts --ext=json --ext=md --ext=yaml --ext=yml -ext=js --ext=mdx -- prettier -c",
+    "prettify": "prettier --write --ignore-path .gitignore \"**/*.{css,html,js,json,md,yaml,yml,ts,md,mdx,tsx,jsx,vue,}\" -c",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.7.0",
+    "@typescript-eslint/parser": "^8.7.0",
+    "eslint": "^9.11.1",
+    "eslint-plugin-prettier": "^5.2.1",
+    "prettier": "^3.3.3"
+  }
+}
