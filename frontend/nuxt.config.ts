@@ -4,7 +4,7 @@ export default defineNuxtConfig({
   $production: {
     runtimeConfig: {
       public: {
-        apiBaseUrl: 'https://api.scorebot.collegefootballdata.com',
+        apiBaseUrl: 'https://scorebotapi.collegefootballdata.com',
       },
     },
   },
