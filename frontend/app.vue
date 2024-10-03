@@ -47,8 +47,8 @@ const menuItems = ref<MenuItem[]>([
     icon: 'pi pi-refresh',
     command: () => signIn('discord'),
     visible: status.value === 'authenticated',
-  }
-])
+  },
+]);
 </script>
 
 <template>
