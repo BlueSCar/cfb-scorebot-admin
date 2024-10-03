@@ -9,7 +9,7 @@
     "build": "tsc --skipLibCheck",
     "build:db": "pnpm kysely-codegen --camel-case --out-file=db.d.ts",
     "dev": "nodemon",
-    "start": "node dist/app.js",
+    "start": "node build/app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
