@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/app.ts",
   "scripts": {
     "clean": "rm -rf tsconfig.tsbuildinfo",
     "build": "tsc --skipLibCheck",
