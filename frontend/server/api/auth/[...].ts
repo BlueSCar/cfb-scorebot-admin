@@ -36,7 +36,9 @@ export default NuxtAuthHandler({
 
           // @ts-ignore
           profile.guilds = guilds
+            // @ts-ignore
             .filter((g) => (g.permissions & 0x00000008) === 0x00000008)
+            // @ts-ignore
             .map((g) => ({ id: g.id, name: g.name }));
 
           return profile;

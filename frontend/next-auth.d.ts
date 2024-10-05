@@ -1,4 +1,6 @@
-declare module 'next-auth/profile' {
+import { DefaultSession, DefaultUser } from 'next-auth';
+
+declare module 'next-auth' {
   interface Profile {
     sub?: string;
     name?: string;
@@ -6,4 +8,7 @@ declare module 'next-auth/profile' {
     image?: string;
     guilds?: Array<{ id: string; name: string }>;
   }
+
+  interface User extends DefaultUser {}
+  interface Session extends DefaultSession {}
 }

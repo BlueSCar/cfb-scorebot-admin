@@ -82,7 +82,7 @@ const menuItems = ref<MenuItem[]>([
     <div v-if="status === 'authenticated'">
       <div class="grid">
         <div class="md:col-2" />
-        <div class="col-6 md:col-4">
+        <div class="col-12 lg:col-4">
           <label class="mt-2 mr-2">Select a server:</label>
           <Select
             placeholder="Select a guild"
@@ -94,7 +94,7 @@ const menuItems = ref<MenuItem[]>([
           />
         </div>
         <div
-          class="col-6 md:col-4"
+          class="col-12 md:col-4"
           v-if="configStore.selectedGuild && configStore.guildChannels"
         >
           <label class="mt-2 mr-2">Select a channel:</label>
