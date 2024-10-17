@@ -61,6 +61,9 @@ const menuItems = ref<MenuItem[]>([
       />
     </template>
     <template #end>
+      <Button @click="configStore.toggleDarkMode" text class="mr-2"
+        ><i :class="`pi pi-${configStore.darkMode ? 'sun' : 'moon'}`"></i
+      ></Button>
       <Button
         as="a"
         icon="pi pi-wallet"
@@ -241,6 +244,12 @@ const menuItems = ref<MenuItem[]>([
   background: hsla(0, 0%, 100%, 0.75);
   margin: 0;
   min-height: 100%;
+}
+
+.dark-mode {
+  & #__nuxt {
+    background: hsla(0, 0%, 0%, 0.75);
+  }
 }
 
 #discord-login {

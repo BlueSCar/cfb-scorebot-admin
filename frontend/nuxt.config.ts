@@ -20,6 +20,11 @@ export default defineNuxtConfig({
     discordClientId: '',
     discordClientSecret: '',
   },
+  app: {
+    head: {
+      title: 'CFBD Score Bot',
+    },
+  },
   compatibilityDate: '2024-04-03',
   devtools: { enabled: true },
   ssr: false,
@@ -40,6 +45,9 @@ export default defineNuxtConfig({
     options: {
       theme: {
         preset: Aura,
+        options: {
+          darkModeSelector: '.dark-mode',
+        },
       },
     },
   },

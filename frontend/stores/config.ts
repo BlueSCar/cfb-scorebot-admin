@@ -14,6 +14,17 @@ import type {
 export const useConfigStore = defineStore('configStore', () => {
   const config = useRuntimeConfig();
 
+  const darkMode = ref(localStorage.getItem('isDarkMode') == 'true');
+  if (darkMode?.value) {
+    document.documentElement.classList.toggle('dark-mode');
+  }
+
+  const toggleDarkMode = () => {
+    localStorage.setItem('isDarkMode', String(!darkMode.value));
+    darkMode.value = !darkMode.value;
+    document.documentElement.classList.toggle('dark-mode');
+  };
+
   let userSession: { guilds: Guild[] } | null = null;
   const getUserSession = async () => {
     if (!userSession) {
@@ -314,6 +325,7 @@ export const useConfigStore = defineStore('configStore', () => {
   };
 
   return {
+    darkMode,
     userSession,
     conferenceList,
     teamSearchText,
@@ -326,6 +338,7 @@ export const useConfigStore = defineStore('configStore', () => {
     selectedGuild,
     selectedChannel,
     trackedGames,
+    toggleDarkMode,
     hydrate,
     addTeam,
     removeTeam,
