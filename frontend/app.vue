@@ -6,6 +6,8 @@ import { useConfigStore } from './stores/config';
 import type { Game, Team } from './types';
 import type { MenuItem } from 'primevue/menuitem';
 
+const currentYear = new Date().getFullYear();
+
 const { signIn, status } = useAuth();
 
 dayjs.extend(utc);
@@ -237,6 +239,11 @@ const menuItems = ref<MenuItem[]>([
       </div>
     </div>
   </div>
+  <footer class="text-center p-2">
+    <hr />
+    © {{ currentYear }} CollegeFootballData.com. All rights reserved.<br />A
+    product of Rad Sports Analytics LLC.
+  </footer>
 </template>
 
 <style lang="scss">
