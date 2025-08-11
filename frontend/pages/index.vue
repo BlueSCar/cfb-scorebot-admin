@@ -2,8 +2,8 @@
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import type { AutoCompleteCompleteEvent } from 'primevue/autocomplete';
-import { useConfigStore } from './stores/config';
-import type { Game, Team } from './types';
+import { useConfigStore } from '../stores/config';
+import type { Game, Team } from '../types';
 import type { MenuItem } from 'primevue/menuitem';
 
 const currentYear = new Date().getFullYear();
