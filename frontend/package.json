@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@pinia/nuxt": "^0.5.4",
+    "@primevue/nuxt-module": "^4.0.7",
     "@primevue/themes": "^4.0.7",
     "@sidebase/nuxt-auth": "^0.9.3",
     "dayjs": "^1.11.13",
@@ -24,7 +25,6 @@
     "vue-router": "latest"
   },
   "devDependencies": {
-    "@primevue/nuxt-module": "^4.0.7",
     "sass": "^1.79.3"
   },
   "overrides": {
