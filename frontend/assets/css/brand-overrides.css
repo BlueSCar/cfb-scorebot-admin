@@ -1,0 +1,173 @@
+:root {
+  --rs-font-sans:
+    'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --rs-font-mono:
+    'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  --cfbd-field-green: #1e913e;
+  --cfbd-field-green-700: #177033;
+  --cfbd-field-green-100: #e2f4e8;
+  --cfbd-logo-navy: #041329;
+  --cfbd-logo-navy-700: #0a1d38;
+
+  --rs-signal-blue: #106ce0;
+  --rs-surface-white: #fdfdfd;
+  --rs-soft-background: #f7f9fc;
+  --rs-stone: #eceef2;
+  --rs-rule-gray: #d0d0d4;
+  --rs-rule-gray-soft: #e5e7eb;
+  --rs-muted-text: #70747c;
+  --rs-deep-ink: #182430;
+  --rs-deep-ink-700: #243140;
+  --rs-success: #1e913e;
+  --rs-warning: #c97a0a;
+  --rs-error: #c8312a;
+
+  --surface-card: var(--rs-surface-white);
+  --surface-border: var(--rs-rule-gray-soft);
+  --text-color-secondary: #52575f;
+  --p-highlight-bg: var(--cfbd-field-green-100);
+  --p-highlight-text-color: var(--cfbd-logo-navy);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-width: 320px;
+  margin: 0;
+  font-family: var(--rs-font-sans);
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  min-height: 100vh;
+  color: var(--p-text-color);
+  background: var(--rs-stone);
+}
+
+code,
+kbd,
+pre,
+samp,
+.p-code,
+[class*='code'] {
+  font-family: var(--rs-font-mono);
+  font-feature-settings: 'liga' 0;
+}
+
+a {
+  color: var(--cfbd-field-green-700);
+  text-decoration-color: var(--cfbd-field-green-100);
+  text-underline-offset: 0.18em;
+}
+
+a.p-button {
+  text-decoration: none;
+}
+
+#__nuxt {
+  min-height: 100vh;
+  margin: 0;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(30, 145, 62, 0.08) 0 1px,
+      transparent 1px 34px
+    ),
+    var(--rs-stone);
+}
+
+.dark-mode,
+.dark-mode body,
+.dark-mode #__nuxt {
+  color-scheme: dark;
+  background-color: var(--rs-deep-ink);
+}
+
+.dark-mode {
+  --surface-card: var(--p-content-background);
+  --surface-border: var(--p-content-border-color);
+  --text-color-secondary: var(--p-text-muted-color);
+  --p-highlight-bg: var(--p-surface-700);
+  --p-highlight-text-color: var(--p-text-color);
+}
+
+html:not(.dark-mode) {
+  --p-content-background: var(--rs-surface-white);
+  --p-content-border-color: var(--rs-rule-gray-soft);
+  --p-form-field-background: var(--rs-surface-white);
+  --p-form-field-border-color: var(--rs-rule-gray);
+  --p-inputtext-background: var(--rs-surface-white);
+  --p-inputtext-border-color: var(--rs-rule-gray);
+  --p-select-background: var(--rs-surface-white);
+  --p-select-border-color: var(--rs-rule-gray);
+  --p-card-background: var(--rs-surface-white);
+  --p-card-border-color: var(--rs-rule-gray-soft);
+  --p-highlight-bg: var(--cfbd-field-green-100);
+  --p-highlight-text-color: var(--cfbd-logo-navy);
+}
+
+html:not(.dark-mode) #__nuxt .p-card,
+html:not(.dark-mode) #__nuxt .p-fieldset {
+  background-color: var(--rs-surface-white);
+  border-color: var(--rs-rule-gray-soft);
+}
+
+html:not(.dark-mode) #__nuxt .p-inputtext,
+html:not(.dark-mode) #__nuxt .p-select,
+html:not(.dark-mode) #__nuxt .p-dropdown,
+html:not(.dark-mode) #__nuxt .p-autocomplete,
+html:not(.dark-mode) #__nuxt .p-textarea {
+  background-color: var(--rs-surface-white);
+  border-color: var(--rs-rule-gray);
+}
+
+html:not(.dark-mode) #__nuxt .p-datatable,
+html:not(.dark-mode) #__nuxt .p-datatable-header,
+html:not(.dark-mode) #__nuxt .p-datatable-table,
+html:not(.dark-mode) #__nuxt .p-datatable-tbody > tr,
+html:not(.dark-mode) #__nuxt .p-paginator {
+  background-color: var(--rs-surface-white);
+}
+
+html:not(.dark-mode) #__nuxt .p-datatable-thead > tr > th {
+  background-color: var(--rs-soft-background);
+  border-color: var(--rs-rule-gray-soft);
+}
+
+html:not(.dark-mode) .p-select-overlay,
+html:not(.dark-mode) .p-dropdown-panel,
+html:not(.dark-mode) .p-autocomplete-overlay,
+html:not(.dark-mode) .p-datepicker-panel {
+  background-color: var(--rs-surface-white);
+  border-color: var(--rs-rule-gray-soft);
+}
+
+.p-datatable,
+.p-datatable td,
+.p-datatable th,
+.tabular-nums,
+[data-tabular] {
+  font-variant-numeric: tabular-nums;
+}
+
+::selection {
+  color: #ffffff;
+  background: var(--cfbd-field-green);
+}
+
+.brand-surface-navy {
+  color: var(--rs-surface-white);
+  background-color: var(--cfbd-logo-navy);
+}
+
+.brand-surface-green-soft {
+  color: var(--cfbd-logo-navy);
+  background-color: var(--cfbd-field-green-100);
+}

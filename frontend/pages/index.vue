@@ -1,294 +1,204 @@
 <script setup lang="ts">
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import type { AutoCompleteCompleteEvent } from 'primevue/autocomplete';
-import { useConfigStore } from '../stores/config';
-import type { Game, Team } from '../types';
-import type { MenuItem } from 'primevue/menuitem';
+import { useConfigStore } from '~/stores/config';
 
-const currentYear = new Date().getFullYear();
-
-const { signIn, status } = useAuth();
-
-dayjs.extend(utc);
-
+const { status } = useAuth();
 const configStore = useConfigStore();
-await configStore.hydrate();
 
-const teamSuggestions = ref<Team[]>([]);
+const isAuthenticated = computed(() => status.value === 'authenticated');
+const isReadyForConfiguration = computed(
+  () => !!configStore.selectedGuild && !!configStore.selectedChannel,
+);
+const setupHint = computed(() => {
+  if (!configStore.selectedGuild) {
+    return 'Select a Discord server to load channels and saved broadcast rules.';
+  }
 
-const searchTeams = (event: AutoCompleteCompleteEvent) => {
-  teamSuggestions.value = configStore.selectableTeams.filter((team) =>
-    team.team.toLowerCase().includes(event.query.toLowerCase()),
-  );
+  if (!configStore.selectedChannel) {
+    return 'Choose the channel where Score Bot should post alerts.';
+  }
+
+  return '';
+});
+
+const hydrateForAuthenticatedUser = async (): Promise<void> => {
+  if (!isAuthenticated.value) {
+    return;
+  }
+
+  await configStore.hydrate();
 };
 
-const isGameDisabled = (game: Game): boolean => {
-  return !!(
-    configStore.broadcastConfig.allFbsGames ||
-    configStore.broadcastConfig.conferences.find(
-      (c) => c == game.homeConferenceAbbreviation,
-    ) ||
-    configStore.broadcastConfig.conferences.find(
-      (c) => c == game.awayConferenceAbbreviation,
-    ) ||
-    configStore.broadcastConfig.teams.find((t) => t.id == game.homeId) ||
-    configStore.broadcastConfig.teams.find((t) => t.id == game.awayId)
-  );
-};
-
-const menuItems = ref<MenuItem[]>([
-  {
-    label: 'Add Bot',
-    icon: 'pi pi-plus',
-    url: 'https://discord.com/oauth2/authorize?client_id=472423746901377025',
-    target: '_blank',
+watch(
+  () => status.value,
+  async () => {
+    await hydrateForAuthenticatedUser();
   },
-  {
-    label: 'Refresh Guilds',
-    icon: 'pi pi-refresh',
-    command: () => signIn('discord'),
-    visible: status.value === 'authenticated',
-  },
-]);
+  { immediate: true },
+);
 </script>
 
 <template>
-  <Menubar :model="menuItems">
-    <template #start>
-      <img
-        alt="logo"
-        height="40"
-        src="https://cdn.collegefootballdata.com/logos/LetterLogo.png"
-      />
-    </template>
-    <template #end>
-      <Button @click="configStore.toggleDarkMode" text class="mr-2"
-        ><i :class="`pi pi-${configStore.darkMode ? 'sun' : 'moon'}`"></i
-      ></Button>
-      <Button
-        as="a"
-        icon="pi pi-wallet"
-        label="Patreon"
-        severity="danger"
-        href="https://www.patreon.com/collegefootballdata"
-        target="_blank"
-        rel="noopener"
-      />
-    </template>
-  </Menubar>
-  <div id="main-container" class="text-center">
-    <h1>CFBD Score Bot</h1>
-
-    <div v-if="status === 'unauthenticated'" id="discord-login">
-      <Button label="Sign In" icon="pi pi-discord" @click="signIn('discord')" />
-    </div>
-
-    <div v-if="status === 'authenticated'">
-      <div class="grid">
-        <div class="md:col-2" />
-        <div class="col-12 lg:col-4">
-          <label class="mt-2 mr-2">Select a server:</label>
-          <Select
-            placeholder="Select a guild"
-            v-model="configStore.selectedGuild"
-            :options="configStore.userGuilds"
-            option-label="name"
-            style="width: 300px"
-            @change="configStore.fetchGuildChannels"
-          />
-        </div>
-        <div
-          class="col-12 md:col-4"
-          v-if="configStore.selectedGuild && configStore.guildChannels"
-        >
-          <label class="mt-2 mr-2">Select a channel:</label>
-          <Select
-            v-model="configStore.selectedChannel"
-            placeholder="Select a channel"
-            :options="configStore.guildChannels"
-            option-label="name"
-            style="width: 300px"
-            @change="configStore.updateBroadcastChannel"
-          />
-        </div>
+  <div class="scorebot-page">
+    <header class="page-header">
+      <div>
+        <h1>CFBD Score Bot</h1>
+        <p>
+          Configure which college football games to track and broadcast as
+          score alerts in your Discord server.
+        </p>
       </div>
+    </header>
 
-      <div v-if="configStore.selectedGuild && configStore.selectedChannel">
-        <Divider />
+    <SignedOutPanel v-if="status === 'unauthenticated'" />
 
-        <h2>Guild Configuration</h2>
+    <section v-else-if="status === 'loading'" class="state-panel">
+      <ProgressSpinner aria-label="Checking Discord session" />
+      <div>
+        <h2>Checking Discord session</h2>
+        <p>Loading your Score Bot workspace.</p>
+      </div>
+    </section>
 
-        <div class="flex flex-wrap justify-content-center gap-4">
-          <div class="flex items-center">
-            <label class="mt-1 mr-2">All FBS games?</label>
-            <ToggleSwitch
-              v-model="configStore.broadcastConfig.allFbsGames"
-              @update:model-value="configStore.toggleAllFbsGames"
-            />
-          </div>
-
-          <div class="flex items-center">
-            <label class="mt-1 mr-2">Close games and upsets?</label>
-            <ToggleSwitch
-              v-model="configStore.broadcastConfig.closeGames"
-              @update:model-value="configStore.toggleCloseGamesAndUpsets"
-            />
-          </div>
-        </div>
-
-        <h3>Conference Broadcasts</h3>
-        <div class="flex flex-wrap justify-content-center gap-4">
-          <div
-            class="flex items-center"
-            v-for="conference in configStore.conferenceList"
-          >
-            <Checkbox
-              v-model="configStore.broadcastConfig.conferences"
-              name="conferences"
-              :value="conference.abbreviation"
-              @update:model-value="configStore.updateBroadcastConferences"
-            />
-            <label class="ml-2">{{ conference.name }}</label>
-          </div>
-        </div>
-
-        <h3>Team Broadcasts</h3>
+    <template v-else>
+      <section v-if="configStore.hydrateError" class="state-panel is-error">
+        <i class="pi pi-exclamation-triangle" aria-hidden="true" />
         <div>
-          <AutoComplete
-            placeholder="Search for teams..."
-            optionLabel="team"
-            v-model="configStore.teamSearchText"
-            :suggestions="teamSuggestions"
-            @complete="searchTeams"
-            @option-select="configStore.addTeam"
-          >
-            <template #option="slotProps">
-              <div class="flex items-center">
-                <img
-                  :alt="slotProps.option.team"
-                  :src="`https://cdn.collegefootballdata.com/logos/64/${slotProps.option.id}.png`"
-                  style="width: 32px"
-                />
-                <div class="ml-2 mt-2">{{ slotProps.option.team }}</div>
-              </div>
-            </template>
-          </AutoComplete>
-        </div>
-        <div class="mt-2">
-          <Chip
-            class="mr-2 mt-2"
-            v-for="team in configStore.broadcastConfig.teams"
-            :label="team.team"
-            :image="`https://cdn.collegefootballdata.com/logos/64/${team.id}.png`"
-            removable
-            @remove="configStore.removeTeam(team.id)"
+          <h2>Unable to load Score Bot data</h2>
+          <p>{{ configStore.hydrateError }}</p>
+          <Button
+            icon="pi pi-refresh"
+            label="Try Again"
+            @click="configStore.hydrate"
           />
         </div>
+      </section>
 
-        <Divider />
+      <section v-else class="admin-workflow">
+        <ServerChannelPanel />
 
-        <DataTable :value="configStore.gamesList">
-          <Column field="isSelected" header="Tracked">
-            <template #body="slotProps">
-              <div class="text-center">
-                <Checkbox
-                  v-model="configStore.trackedGames"
-                  :value="slotProps.data.id"
-                  :disabled="isGameDisabled(slotProps.data)"
-                  @update:model-value="
-                    configStore.toggleTrackedGame(slotProps.data.id)
-                  "
-                />
-              </div>
-            </template>
-          </Column>
-          <Column field="startDate" header="Start Date">
-            <template #body="slotProps">
-              {{
-                dayjs(slotProps.data.startDate)
-                  .utc()
-                  .local()
-                  .format('dddd, M/D, h:mm a')
-              }}
-            </template>
-          </Column>
-          <Column field="homeTeam" header="Home">
-            <template #body="slotProps">
-              <div class="flex items-center">
-                <img
-                  :src="`https://cdn.collegefootballdata.com/logos/64/${slotProps.data.homeId}.png`"
-                  style="width: 24px"
-                />
-                <div class="ml-2 mt-1">{{ slotProps.data.homeTeam }}</div>
-              </div>
-            </template>
-          </Column>
-          <Column field="awayTeam" header="Away">
-            <template #body="slotProps">
-              <div class="flex items-center">
-                <img
-                  :src="`https://cdn.collegefootballdata.com/logos/64/${slotProps.data.awayId}.png`"
-                  style="width: 24px"
-                />
-                <div class="ml-2 mt-1">{{ slotProps.data.awayTeam }}</div>
-              </div>
-            </template>
-          </Column>
-        </DataTable>
-      </div>
-    </div>
+        <section v-if="configStore.isHydrating" class="state-panel">
+          <ProgressSpinner aria-label="Loading Score Bot data" />
+          <div>
+            <h2>Loading saved configuration</h2>
+            <p>Fetching servers, channels, teams, and this week's games.</p>
+          </div>
+        </section>
+
+        <template v-else>
+          <ConfigSummary v-if="isReadyForConfiguration" />
+
+          <section v-else class="empty-setup-panel">
+            <i class="pi pi-arrow-up-right" aria-hidden="true" />
+            <div>
+              <h2>Finish setup to unlock broadcast rules.</h2>
+              <p>{{ setupHint }}</p>
+            </div>
+          </section>
+
+          <BroadcastRulesPanel v-if="isReadyForConfiguration" />
+          <GameSelectorTable v-if="isReadyForConfiguration" />
+        </template>
+      </section>
+    </template>
   </div>
-  <footer class="text-center p-2">
-    <hr />
-    © {{ currentYear }} CollegeFootballData.com. All rights reserved.<br />A
-    product of Rad Sports Analytics LLC.
-  </footer>
 </template>
 
-<style lang="scss">
-#__nuxt {
-  background: hsla(0, 0%, 100%, 0.75);
-  margin: 0;
-  min-height: 100%;
+<style scoped lang="scss">
+.scorebot-page {
+  display: grid;
+  gap: 1.35rem;
+  max-width: 1320px;
+  margin: 0 auto;
 }
 
-.dark-mode {
-  & #__nuxt {
-    background: hsla(0, 0%, 0%, 0.75);
+.page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.page-header h1 {
+  margin: 0;
+  color: var(--cfbd-logo-navy);
+  font-size: clamp(1.9rem, 3vw, 2.45rem);
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1.02;
+}
+
+.dark-mode .page-header h1 {
+  color: var(--rs-surface-white);
+}
+
+.page-header p {
+  max-width: 720px;
+  margin: 0.45rem 0 0;
+  color: var(--p-text-muted-color);
+  font-size: clamp(0.98rem, 1.2vw, 1.05rem);
+  line-height: 1.55;
+}
+
+.admin-workflow {
+  display: grid;
+  gap: 1.15rem;
+}
+
+.state-panel,
+.empty-setup-panel {
+  display: grid;
+  align-items: center;
+  gap: 1rem;
+  grid-template-columns: auto 1fr;
+  border: 1px solid var(--surface-border);
+  border-radius: 8px;
+  background: var(--p-content-background);
+  padding: clamp(1.1rem, 2.5vw, 1.5rem);
+}
+
+.state-panel :deep(.p-progressspinner) {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.state-panel i,
+.empty-setup-panel i {
+  color: var(--cfbd-field-green);
+  font-size: 1.5rem;
+}
+
+.state-panel.is-error i {
+  color: var(--rs-error);
+}
+
+.state-panel h2,
+.empty-setup-panel h2 {
+  margin: 0 0 0.3rem;
+  color: var(--p-text-color);
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.state-panel p,
+.empty-setup-panel p {
+  margin: 0;
+  color: var(--p-text-muted-color);
+  line-height: 1.5;
+}
+
+.state-panel :deep(.p-button) {
+  margin-top: 0.85rem;
+}
+
+@media (max-width: 720px) {
+  .page-header {
+    align-items: flex-start;
+    flex-direction: column;
   }
-}
 
-#discord-login {
-  button {
-    background: #7289da;
+  .state-panel,
+  .empty-setup-panel {
+    grid-template-columns: 1fr;
   }
-}
-
-html {
-  margin: 0;
-  height: 100%;
-}
-
-body {
-  height: 100%;
-  width: 100%;
-  margin: 0;
-  background-image: url('https://cdn.collegefootballdata.com/assets/football-field-bg.jpg');
-  background-size: cover;
-  background-attachment: fixed;
-}
-
-a.p-button {
-  text-decoration: none;
-}
-
-.p-chip-image {
-  border-radius: 0%;
-  margin: 1px;
-}
-
-#main-container {
-  padding: 2em;
 }
 </style>

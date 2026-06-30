@@ -14,15 +14,19 @@ import type {
 export const useConfigStore = defineStore('configStore', () => {
   const config = useRuntimeConfig();
 
-  const darkMode = ref(localStorage.getItem('isDarkMode') == 'true');
-  if (darkMode?.value) {
-    document.documentElement.classList.toggle('dark-mode');
+  const darkMode = ref(
+    import.meta.client ? localStorage.getItem('isDarkMode') === 'true' : false,
+  );
+  if (import.meta.client && darkMode.value) {
+    document.documentElement.classList.add('dark-mode');
   }
 
   const toggleDarkMode = () => {
-    localStorage.setItem('isDarkMode', String(!darkMode.value));
     darkMode.value = !darkMode.value;
-    document.documentElement.classList.toggle('dark-mode');
+    if (import.meta.client) {
+      localStorage.setItem('isDarkMode', String(darkMode.value));
+      document.documentElement.classList.toggle('dark-mode', darkMode.value);
+    }
   };
 
   let userSession: { guilds: Guild[] } | null = null;
@@ -56,51 +60,103 @@ export const useConfigStore = defineStore('configStore', () => {
   });
 
   const trackedGames = ref<number[]>([]);
+  const isHydrating = ref(false);
+  const isFetchingGuild = ref(false);
+  const hydrateError = ref<string | null>(null);
+  const requestError = ref<string | null>(null);
+  const savingKey = ref<string | null>(null);
+  const lastSavedAt = ref<Date | null>(null);
+
+  const markSaved = () => {
+    lastSavedAt.value = new Date();
+  };
+
+  const setRequestError = (error: unknown, message: string) => {
+    console.error(error);
+    requestError.value = message;
+  };
+
+  const withSave = async (key: string, action: () => Promise<void>) => {
+    savingKey.value = key;
+    requestError.value = null;
+
+    try {
+      await action();
+      markSaved();
+    } catch (error) {
+      setRequestError(
+        error,
+        'The latest change could not be saved. Please try again.',
+      );
+    } finally {
+      savingKey.value = null;
+    }
+  };
 
   const fetchGuildInfo = async () => {
-    const token = await getToken();
+    if (!selectedGuild.value) {
+      return;
+    }
 
-    const channelsResponse = await $fetch<GuildInfo>(
-      `/api/discord/guilds/${selectedGuild.value?.id}`,
-      {
-        baseURL: config.public.apiBaseUrl,
-        headers: {
-          Authorization: `Bearer ${token}`,
+    isFetchingGuild.value = true;
+    requestError.value = null;
+
+    try {
+      const token = await getToken();
+
+      const channelsResponse = await $fetch<GuildInfo>(
+        `/api/discord/guilds/${selectedGuild.value.id}`,
+        {
+          baseURL: config.public.apiBaseUrl,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
-      },
-    );
+      );
 
-    guildChannels.value = channelsResponse?.channels ?? [];
-    selectedChannel.value =
-      guildChannels.value.find(
-        (c) => c.id === channelsResponse?.selectedChannelId,
-      ) ?? null;
-    broadcastConfig.value = {
-      allFbsGames: channelsResponse?.broadcastAllFbs ?? false,
-      closeGames: channelsResponse?.closeGameAlerts ?? false,
-      conferences: channelsResponse?.conferences ?? [],
-      teams:
-        channelsResponse?.teams
-          .map((t) => teamsList.value.find((l) => t == l.id))
-          .filter((t) => t !== undefined) ?? [],
-      selectedGames: channelsResponse?.gameIds ?? [],
-    };
+      guildChannels.value = channelsResponse?.channels ?? [];
+      selectedChannel.value =
+        guildChannels.value.find(
+          (c) => c.id === channelsResponse?.selectedChannelId,
+        ) ?? null;
+      broadcastConfig.value = {
+        allFbsGames: channelsResponse?.broadcastAllFbs ?? false,
+        closeGames: channelsResponse?.closeGameAlerts ?? false,
+        conferences: channelsResponse?.conferences ?? [],
+        teams:
+          channelsResponse?.teams
+            .map((t) => teamsList.value.find((l) => t === l.id))
+            .filter((team): team is Team => team !== undefined) ?? [],
+        selectedGames: channelsResponse?.gameIds ?? [],
+      };
 
-    updateTrackedGames();
+      updateTrackedGames();
+    } catch (error) {
+      guildChannels.value = [];
+      selectedChannel.value = null;
+      setRequestError(
+        error,
+        'Server settings could not be loaded. Refresh guild access and try again.',
+      );
+    } finally {
+      isFetchingGuild.value = false;
+    }
   };
 
   const updateBroadcastChannel = async () => {
-    const token = await getToken();
+    await withSave('channel', async () => {
+      const token = await getToken();
 
-    await $fetch(`/api/discord/guilds/${selectedGuild.value?.id}/channel`, {
-      baseURL: config.public.apiBaseUrl,
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: {
-        channelId: selectedChannel.value?.id,
-      },
+      await $fetch(`/api/discord/guilds/${selectedGuild.value?.id}/channel`, {
+        baseURL: config.public.apiBaseUrl,
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: {
+          channelId: selectedChannel.value?.id,
+        },
+      });
     });
   };
 
@@ -158,38 +214,57 @@ export const useConfigStore = defineStore('configStore', () => {
   const gamesList = ref<Game[]>([]);
 
   const hydrate = async () => {
-    await getUserSession();
-    if (userSession?.guilds) {
-      userGuilds.value = userSession.guilds;
+    if (isHydrating.value) {
+      return;
     }
 
-    await getToken();
+    isHydrating.value = true;
+    hydrateError.value = null;
 
-    const teamsResponse = await useFetch<Team[]>(`/api/teams`, {
-      baseURL: config.public.apiBaseUrl,
-    });
-    teamsList.value = teamsResponse.data.value ?? [];
+    try {
+      await getUserSession();
+      if (userSession?.guilds) {
+        userGuilds.value = userSession.guilds;
+      }
 
-    const gamesResponse = await useFetch<Game[]>(`/api/games`, {
-      baseURL: config.public.apiBaseUrl,
-    });
-    gamesList.value = gamesResponse.data.value ?? [];
+      await getToken();
 
-    updateTrackedGames();
+      const [teamsResponse, gamesResponse] = await Promise.all([
+        $fetch<Team[]>('/api/teams', {
+          baseURL: config.public.apiBaseUrl,
+        }),
+        $fetch<Game[]>('/api/games', {
+          baseURL: config.public.apiBaseUrl,
+        }),
+      ]);
+
+      teamsList.value = teamsResponse;
+      gamesList.value = gamesResponse;
+
+      updateTrackedGames();
+    } catch (error) {
+      console.error(error);
+      hydrateError.value =
+        'Score Bot data could not be loaded. Check your connection and try again.';
+    } finally {
+      isHydrating.value = false;
+    }
   };
 
   const updateTeamsRequest = async () => {
-    const token = await getToken();
+    await withSave('teams', async () => {
+      const token = await getToken();
 
-    await $fetch(`/api/discord/guilds/${selectedGuild.value?.id}/teams`, {
-      baseURL: config.public.apiBaseUrl,
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: {
-        guildTeams: broadcastConfig.value.teams.map((t) => t.id),
-      },
+      await $fetch(`/api/discord/guilds/${selectedGuild.value?.id}/teams`, {
+        baseURL: config.public.apiBaseUrl,
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: {
+          guildTeams: broadcastConfig.value.teams.map((t) => t.id),
+        },
+      });
     });
   };
 
@@ -236,65 +311,11 @@ export const useConfigStore = defineStore('configStore', () => {
   const toggleAllFbsGames = async (broadcast: boolean) => {
     updateTrackedGames();
 
-    const token = await getToken();
-
-    await $fetch(
-      `/api/discord/guilds/${selectedGuild.value?.id}/broadcastAllFbs`,
-      {
-        baseURL: config.public.apiBaseUrl,
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: {
-          broadcastAllFbs: broadcast,
-        },
-      },
-    );
-  };
-
-  const toggleCloseGamesAndUpsets = async (broadcast: boolean) => {
-    const token = await getToken();
-
-    await $fetch(
-      `/api/discord/guilds/${selectedGuild.value?.id}/closeGameAlerts`,
-      {
-        baseURL: config.public.apiBaseUrl,
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: {
-          closeGameAlerts: broadcast,
-        },
-      },
-    );
-  };
-
-  const updateBroadcastConferences = async () => {
-    updateTrackedGames();
-
-    const token = await getToken();
-
-    await $fetch(`/api/discord/guilds/${selectedGuild.value?.id}/conferences`, {
-      baseURL: config.public.apiBaseUrl,
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: {
-        guildConferences: broadcastConfig.value.conferences,
-      },
-    });
-  };
-
-  const toggleTrackedGame = async (gameId: number) => {
-    if (broadcastConfig.value.selectedGames.includes(gameId)) {
-      broadcastConfig.value.selectedGames =
-        broadcastConfig.value.selectedGames.filter((id) => id !== gameId);
+    await withSave('all-fbs', async () => {
+      const token = await getToken();
 
       await $fetch(
-        `/api/discord/guilds/${selectedGuild.value?.id}/games/remove`,
+        `/api/discord/guilds/${selectedGuild.value?.id}/broadcastAllFbs`,
         {
           baseURL: config.public.apiBaseUrl,
           method: 'POST',
@@ -302,26 +323,102 @@ export const useConfigStore = defineStore('configStore', () => {
             Authorization: `Bearer ${token}`,
           },
           body: {
-            gameId,
+            broadcastAllFbs: broadcast,
           },
         },
       );
+    });
+  };
+
+  const toggleCloseGamesAndUpsets = async (broadcast: boolean) => {
+    await withSave('close-games', async () => {
+      const token = await getToken();
+
+      await $fetch(
+        `/api/discord/guilds/${selectedGuild.value?.id}/closeGameAlerts`,
+        {
+          baseURL: config.public.apiBaseUrl,
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: {
+            closeGameAlerts: broadcast,
+          },
+        },
+      );
+    });
+  };
+
+  const updateBroadcastConferences = async () => {
+    updateTrackedGames();
+
+    await withSave('conferences', async () => {
+      const token = await getToken();
+
+      await $fetch(
+        `/api/discord/guilds/${selectedGuild.value?.id}/conferences`,
+        {
+          baseURL: config.public.apiBaseUrl,
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: {
+            guildConferences: broadcastConfig.value.conferences,
+          },
+        },
+      );
+    });
+  };
+
+  const toggleTrackedGame = async (gameId: number) => {
+    const token = await getToken();
+
+    if (broadcastConfig.value.selectedGames.includes(gameId)) {
+      broadcastConfig.value.selectedGames =
+        broadcastConfig.value.selectedGames.filter((id) => id !== gameId);
+
+      await withSave('games', async () => {
+        await $fetch(
+          `/api/discord/guilds/${selectedGuild.value?.id}/games/remove`,
+          {
+            baseURL: config.public.apiBaseUrl,
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            body: {
+              gameId,
+            },
+          },
+        );
+      });
     } else {
       broadcastConfig.value.selectedGames.push(gameId);
 
-      await $fetch(`/api/discord/guilds/${selectedGuild.value?.id}/games/add`, {
-        baseURL: config.public.apiBaseUrl,
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: {
-          gameId,
-        },
+      await withSave('games', async () => {
+        await $fetch(
+          `/api/discord/guilds/${selectedGuild.value?.id}/games/add`,
+          {
+            baseURL: config.public.apiBaseUrl,
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            body: {
+              gameId,
+            },
+          },
+        );
       });
     }
 
     updateTrackedGames();
+  };
+
+  const clearRequestError = () => {
+    requestError.value = null;
   };
 
   return {
@@ -338,6 +435,12 @@ export const useConfigStore = defineStore('configStore', () => {
     selectedGuild,
     selectedChannel,
     trackedGames,
+    isHydrating,
+    isFetchingGuild,
+    hydrateError,
+    requestError,
+    savingKey,
+    lastSavedAt,
     toggleDarkMode,
     hydrate,
     addTeam,
@@ -349,5 +452,6 @@ export const useConfigStore = defineStore('configStore', () => {
     toggleCloseGamesAndUpsets,
     updateBroadcastConferences,
     toggleTrackedGame,
+    clearRequestError,
   };
 });
