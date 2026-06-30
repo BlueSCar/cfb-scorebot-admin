@@ -11,6 +11,7 @@ const configStore = useConfigStore();
 
 const searchTerm = ref('');
 const selectedConference = ref('all');
+const selectedWeek = ref('all');
 const coverageFilter = ref<'all' | 'tracked' | 'manual' | 'available'>('all');
 const pageSize = ref(50);
 
@@ -31,6 +32,44 @@ const pageSizeOptions = [25, 50, 100, 250];
 const coverageFor = (game: Game) =>
   getGameCoverage(game, configStore.broadcastConfig);
 
+const isPostseasonGame = (game: Game): boolean =>
+  game.seasonType === 'postseason';
+
+const weekFilterValue = (game: Game): string =>
+  isPostseasonGame(game) ? 'postseason' : `week-${game.week}`;
+
+const formatWeek = (game: Game): string =>
+  isPostseasonGame(game) ? 'Postseason' : String(game.week);
+
+const weekOptions = computed(() => {
+  const weeks = new Set<number>();
+  let hasPostseason = false;
+
+  configStore.gamesList.forEach((game) => {
+    if (isPostseasonGame(game)) {
+      hasPostseason = true;
+      return;
+    }
+
+    weeks.add(game.week);
+  });
+
+  const options = [...weeks]
+    .sort((a, b) => a - b)
+    .map((week) => ({
+      label: `Week ${week}`,
+      value: `week-${week}`,
+    }));
+
+  return [
+    { label: 'All weeks', value: 'all' },
+    ...options,
+    ...(hasPostseason
+      ? [{ label: 'Postseason', value: 'postseason' }]
+      : []),
+  ];
+});
+
 const filteredGames = computed(() => {
   const query = searchTerm.value.trim().toLowerCase();
 
@@ -46,13 +85,16 @@ const filteredGames = computed(() => {
       selectedConference.value === 'all' ||
       game.homeConferenceAbbreviation === selectedConference.value ||
       game.awayConferenceAbbreviation === selectedConference.value;
+    const matchesWeek =
+      selectedWeek.value === 'all' ||
+      weekFilterValue(game) === selectedWeek.value;
     const matchesCoverage =
       coverageFilter.value === 'all' ||
       (coverageFilter.value === 'tracked' && coverage.selected) ||
       (coverageFilter.value === 'manual' && coverage.kind === 'manual') ||
       (coverageFilter.value === 'available' && !coverage.selected);
 
-    return matchesSearch && matchesConference && matchesCoverage;
+    return matchesSearch && matchesConference && matchesWeek && matchesCoverage;
   });
 });
 
@@ -110,6 +152,13 @@ const toggleGame = async (game: Game): Promise<void> => {
           aria-label="Filter by conference"
         />
         <Select
+          v-model="selectedWeek"
+          :options="weekOptions"
+          option-label="label"
+          option-value="value"
+          aria-label="Filter by week"
+        />
+        <Select
           v-model="coverageFilter"
           :options="coverageOptions"
           option-label="label"
@@ -138,7 +187,12 @@ const toggleGame = async (game: Game): Promise<void> => {
           />
         </template>
       </Column>
-      <Column field="startDate" header="Start (ET)" style="min-width: 170px">
+      <Column header="Week" style="width: 110px">
+        <template #body="slotProps">
+          <span class="week-value">{{ formatWeek(slotProps.data) }}</span>
+        </template>
+      </Column>
+      <Column field="startDate" header="Start (Local)" style="min-width: 170px">
         <template #body="slotProps">
           <span class="start-time">{{ formatStart(slotProps.data.startDate) }}</span>
         </template>
@@ -234,6 +288,12 @@ const toggleGame = async (game: Game): Promise<void> => {
   font-family: var(--rs-font-mono);
   font-size: 0.84rem;
   font-weight: 600;
+}
+
+.week-value {
+  font-family: var(--rs-font-mono);
+  font-size: 0.82rem;
+  font-weight: 700;
 }
 
 .team-cell {

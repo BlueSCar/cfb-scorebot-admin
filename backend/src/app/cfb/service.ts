@@ -27,33 +27,38 @@ export const getTeamsList = async (): Promise<Team[]> => {
 export const getGamesList = async (): Promise<Game[]> => {
   const games = await cfb
     .selectFrom('scoreboard')
+    .innerJoin('game', 'game.id', 'scoreboard.id')
     .where((eb) =>
       eb.or([
-        eb('homeClassification', '=', 'fbs'),
-        eb('awayClassification', '=', 'fbs'),
+        eb('scoreboard.homeClassification', '=', 'fbs'),
+        eb('scoreboard.awayClassification', '=', 'fbs'),
       ]),
     )
-    .orderBy('startDate')
+    .orderBy('scoreboard.startDate')
     .select([
-      'id',
-      'homeId',
-      'homeLocation',
-      'homeTeam',
-      'homeConference',
-      'homeConferenceAbbreviation',
-      'awayId',
-      'awayLocation',
-      'awayTeam',
-      'awayConference',
-      'awayConferenceAbbreviation',
-      'startDate',
+      'scoreboard.id as id',
+      'game.week as week',
+      'game.seasonType as seasonType',
+      'scoreboard.homeId as homeId',
+      'scoreboard.homeLocation as homeLocation',
+      'scoreboard.homeTeam as homeTeam',
+      'scoreboard.homeConference as homeConference',
+      'scoreboard.homeConferenceAbbreviation as homeConferenceAbbreviation',
+      'scoreboard.awayId as awayId',
+      'scoreboard.awayLocation as awayLocation',
+      'scoreboard.awayTeam as awayTeam',
+      'scoreboard.awayConference as awayConference',
+      'scoreboard.awayConferenceAbbreviation as awayConferenceAbbreviation',
+      'scoreboard.startDate as startDate',
     ])
-    .where('status', '<>', 'completed')
+    .where('scoreboard.status', '<>', 'completed')
     .execute();
 
   return games.map(
     (g): Game => ({
       id: g.id ?? 0,
+      week: g.week ?? 0,
+      seasonType: g.seasonType ?? '',
       homeId: g.homeId ?? 0,
       homeLocation: g.homeLocation ?? '',
       homeTeam: g.homeTeam ?? '',

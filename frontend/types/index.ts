@@ -28,6 +28,8 @@ export interface Team {
 
 export interface Game {
   id: number;
+  week: number;
+  seasonType: string;
   homeId: number;
   homeLocation: string;
   homeTeam: string;
