@@ -1,5 +1,6 @@
 import { cfb } from '../../config/database';
 import { Game, Team } from './types';
+import { getSelectableGamesQuery } from './games';
 
 export const getTeamsList = async (): Promise<Team[]> => {
   const teams = await cfb
@@ -25,34 +26,7 @@ export const getTeamsList = async (): Promise<Team[]> => {
 };
 
 export const getGamesList = async (): Promise<Game[]> => {
-  const games = await cfb
-    .selectFrom('scoreboard')
-    .innerJoin('game', 'game.id', 'scoreboard.id')
-    .where((eb) =>
-      eb.or([
-        eb('scoreboard.homeClassification', '=', 'fbs'),
-        eb('scoreboard.awayClassification', '=', 'fbs'),
-      ]),
-    )
-    .orderBy('scoreboard.startDate')
-    .select([
-      'scoreboard.id as id',
-      'game.week as week',
-      'game.seasonType as seasonType',
-      'scoreboard.homeId as homeId',
-      'scoreboard.homeLocation as homeLocation',
-      'scoreboard.homeTeam as homeTeam',
-      'scoreboard.homeConference as homeConference',
-      'scoreboard.homeConferenceAbbreviation as homeConferenceAbbreviation',
-      'scoreboard.awayId as awayId',
-      'scoreboard.awayLocation as awayLocation',
-      'scoreboard.awayTeam as awayTeam',
-      'scoreboard.awayConference as awayConference',
-      'scoreboard.awayConferenceAbbreviation as awayConferenceAbbreviation',
-      'scoreboard.startDate as startDate',
-    ])
-    .where('scoreboard.status', '<>', 'completed')
-    .execute();
+  const games = await getSelectableGamesQuery(cfb).execute();
 
   return games.map(
     (g): Game => ({
@@ -72,4 +46,14 @@ export const getGamesList = async (): Promise<Game[]> => {
       startDate: g.startDate ?? new Date(),
     }),
   );
+};
+
+export const getSelectableGameIds = async (): Promise<string[]> => {
+  const games = await getSelectableGamesQuery(cfb)
+    .clearSelect()
+    .clearOrderBy()
+    .select('game.id')
+    .execute();
+
+  return games.map((game) => String(game.id));
 };

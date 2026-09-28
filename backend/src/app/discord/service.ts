@@ -1,7 +1,8 @@
 import { ChannelType, Client, GatewayIntentBits, Snowflake } from 'discord.js';
 import { ExpressUser } from 'src/config/types/express';
 
-import { cfb, scores } from '../../config/database';
+import { scores } from '../../config/database';
+import { getSelectableGameIds } from '../cfb/service';
 
 const token = process.env.DISCORD_TOKEN ?? '';
 
@@ -26,10 +27,7 @@ export const useDiscord = async () => {
       }))
       .sort((a, b) => a.name.localeCompare(b.name));
 
-    const currentGameIds = await cfb
-      .selectFrom('scoreboard')
-      .select('id')
-      .execute();
+    const currentGameIds = await getSelectableGameIds();
 
     const guildInfo = await scores
       .selectFrom('guildChannel')
@@ -44,17 +42,14 @@ export const useDiscord = async () => {
       ])
       .executeTakeFirst();
 
-    const guildGames = await scores
-      .selectFrom('guildGame')
-      .where('guildId', '=', id)
-      .where(
-        'gameId',
-        'in',
-        // @ts-ignore
-        currentGameIds.map((g) => g.id ?? 0),
-      )
-      .select(['guildId', 'gameId'])
-      .execute();
+    const guildGames = currentGameIds.length
+      ? await scores
+          .selectFrom('guildGame')
+          .where('guildId', '=', id)
+          .where('gameId', 'in', currentGameIds)
+          .select(['guildId', 'gameId'])
+          .execute()
+      : [];
 
     return {
       id: guild.id,
@@ -86,10 +81,7 @@ export const useDiscord = async () => {
 
   const getUserGuilds = async (user: ExpressUser) => {
     const userGuildIds = user.guilds.map((g) => g.id);
-    const currentGameIds = await cfb
-      .selectFrom('scoreboard')
-      .select('id')
-      .execute();
+    const currentGameIds = await getSelectableGameIds();
 
     const guildChannels = await scores
       .selectFrom('guildChannel')
@@ -104,17 +96,14 @@ export const useDiscord = async () => {
       ])
       .execute();
 
-    const guildGames = await scores
-      .selectFrom('guildGame')
-      .where('guildId', 'in', userGuildIds)
-      .where(
-        'gameId',
-        'in',
-        // @ts-ignore
-        currentGameIds.map((g) => g.id ?? 0),
-      )
-      .select(['guildId', 'gameId'])
-      .execute();
+    const guildGames = currentGameIds.length
+      ? await scores
+          .selectFrom('guildGame')
+          .where('guildId', 'in', userGuildIds)
+          .where('gameId', 'in', currentGameIds)
+          .select(['guildId', 'gameId'])
+          .execute()
+      : [];
 
     const responseGuilds = [];
 

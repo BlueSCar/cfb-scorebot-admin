@@ -43,8 +43,8 @@ watch(
       <div>
         <h1>CFBD Score Bot</h1>
         <p>
-          Configure which college football games to track and broadcast as
-          score alerts in your Discord server.
+          Configure which college football games to track and broadcast as score
+          alerts in your Discord server.
         </p>
       </div>
     </header>
@@ -80,7 +80,9 @@ watch(
           <ProgressSpinner aria-label="Loading Score Bot data" />
           <div>
             <h2>Loading saved configuration</h2>
-            <p>Fetching servers, channels, teams, and this week's games.</p>
+            <p>
+              Fetching servers, channels, teams, and upcoming and live games.
+            </p>
           </div>
         </section>
 
