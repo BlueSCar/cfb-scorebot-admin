@@ -41,6 +41,7 @@ export interface Game {
   awayConference: string;
   awayConferenceAbbreviation: string;
   startDate: Date;
+  watchabilityScore?: number | null;
 }
 
 export interface GuildInfo {

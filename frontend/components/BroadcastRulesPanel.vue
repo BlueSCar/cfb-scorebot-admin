@@ -48,9 +48,9 @@ const isSaving = (key: string): boolean => configStore.savingKey === key;
       <div class="rule-note">
         <i class="pi pi-info-circle" aria-hidden="true" />
         <p>
-          <strong>Close games:</strong> FBS games in OT or inside the final
-          5:00 of the 4th within 8 points. <br /><strong>Upsets:</strong> 4th
-          quarter or OT leads by lower-ranked teams, plus FCS-over-FBS leads.
+          <strong>Close games:</strong> FBS games in OT or inside the final 5:00
+          of the 4th within 8 points. <br /><strong>Upsets:</strong> 4th quarter
+          or OT leads by lower-ranked teams, plus FCS-over-FBS leads.
         </p>
       </div>
     </div>
@@ -59,7 +59,9 @@ const isSaving = (key: string): boolean => configStore.savingKey === key;
       <div class="rule-section">
         <div class="section-title">
           <h2>Conferences</h2>
-          <span>{{ configStore.broadcastConfig.conferences.length }} selected</span>
+          <span
+            >{{ configStore.broadcastConfig.conferences.length }} selected</span
+          >
         </div>
         <div class="conference-grid">
           <label

@@ -26,7 +26,36 @@ export const getTeamsList = async (): Promise<Team[]> => {
 };
 
 export const getGamesList = async (): Promise<Game[]> => {
-  const games = await getSelectableGamesQuery(cfb).execute();
+  const now = new Date();
+  const games = await getSelectableGamesQuery(cfb, now)
+    .select((eb) =>
+      // Only use scores for unchanged matchups from the current CORE publication.
+      eb
+        .selectFrom('gameWatchability as watchability')
+        .innerJoin('coreRatings as homeCore', (join) =>
+          join
+            .onRef('homeCore.teamId', '=', 'watchability.homeTeamId')
+            .onRef('homeCore.year', '=', 'watchability.season')
+            .onRef('homeCore.updatedAt', '=', 'watchability.sourceUpdatedAt'),
+        )
+        .innerJoin('coreRatings as awayCore', (join) =>
+          join
+            .onRef('awayCore.teamId', '=', 'watchability.awayTeamId')
+            .onRef('awayCore.year', '=', 'watchability.season')
+            .onRef('awayCore.updatedAt', '=', 'watchability.sourceUpdatedAt'),
+        )
+        .select('watchability.score')
+        .whereRef('watchability.gameId', '=', 'game.id')
+        .whereRef('watchability.season', '=', 'game.season')
+        .whereRef('watchability.week', '=', 'game.week')
+        .whereRef('watchability.homeTeamId', '=', 'home.id')
+        .whereRef('watchability.awayTeamId', '=', 'away.id')
+        .whereRef('watchability.neutralSite', '=', 'game.neutralSite')
+        .where('game.status', '=', 'scheduled')
+        .where('game.startDate', '>', now)
+        .as('watchabilityScore'),
+    )
+    .execute();
 
   return games.map(
     (g): Game => ({
@@ -44,6 +73,7 @@ export const getGamesList = async (): Promise<Game[]> => {
       awayConference: g.awayConference ?? '',
       awayConferenceAbbreviation: g.awayConferenceAbbreviation ?? '',
       startDate: g.startDate ?? new Date(),
+      watchabilityScore: g.watchabilityScore ?? null,
     }),
   );
 };

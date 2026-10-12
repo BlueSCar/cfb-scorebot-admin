@@ -14,6 +14,26 @@ const selectedConference = ref('all');
 const selectedWeek = ref('all');
 const coverageFilter = ref<'all' | 'tracked' | 'manual' | 'available'>('all');
 const pageSize = ref(50);
+const now = ref(Date.now());
+let kickoffTimer: ReturnType<typeof setInterval> | undefined;
+
+onMounted(() => {
+  kickoffTimer = setInterval(() => {
+    now.value = Date.now();
+  }, 1000);
+});
+onUnmounted(() => clearInterval(kickoffTimer));
+
+const formatWatchability = (game: Game): string => {
+  const score = game.watchabilityScore;
+  return typeof score === 'number' &&
+    Number.isFinite(score) &&
+    score >= 0 &&
+    score <= 100 &&
+    new Date(game.startDate).getTime() > now.value
+    ? `${Math.round(score)}/100`
+    : '';
+};
 
 const conferenceOptions = computed(() => [
   { name: 'All conferences', abbreviation: 'all' },
@@ -64,9 +84,7 @@ const weekOptions = computed(() => {
   return [
     { label: 'All weeks', value: 'all' },
     ...options,
-    ...(hasPostseason
-      ? [{ label: 'Postseason', value: 'postseason' }]
-      : []),
+    ...(hasPostseason ? [{ label: 'Postseason', value: 'postseason' }] : []),
   ];
 });
 
@@ -105,7 +123,9 @@ const trackedVisibleCount = computed(
 const formatStart = (startDate: Date): string =>
   dayjs(startDate).utc().local().format('ddd, MMM D h:mm A');
 
-const tagSeverity = (kind: string): 'success' | 'info' | 'secondary' | 'warn' =>
+const tagSeverity = (
+  kind: string,
+): 'success' | 'info' | 'secondary' | 'warn' =>
   kind === 'manual'
     ? 'success'
     : kind === 'none'
@@ -134,8 +154,7 @@ const toggleGame = async (game: Game): Promise<void> => {
         <h2>Game Selector</h2>
         <p>
           {{ trackedVisibleCount }} tracked in view ·
-          {{ filteredGames.length }} games shown ·
-          {{ pageSize }} per page
+          {{ filteredGames.length }} games shown · {{ pageSize }} per page
         </p>
       </div>
 
@@ -194,7 +213,9 @@ const toggleGame = async (game: Game): Promise<void> => {
       </Column>
       <Column field="startDate" header="Start (Local)" style="min-width: 170px">
         <template #body="slotProps">
-          <span class="start-time">{{ formatStart(slotProps.data.startDate) }}</span>
+          <span class="start-time">{{
+            formatStart(slotProps.data.startDate)
+          }}</span>
         </template>
       </Column>
       <Column field="awayTeam" header="Away" style="min-width: 220px">
@@ -223,6 +244,11 @@ const toggleGame = async (game: Game): Promise<void> => {
               <span>{{ slotProps.data.homeLocation }}</span>
             </div>
           </div>
+        </template>
+      </Column>
+      <Column header="CORE Watchability" style="min-width: 150px">
+        <template #body="slotProps">
+          {{ formatWatchability(slotProps.data) }}
         </template>
       </Column>
       <Column header="Coverage" style="min-width: 180px">

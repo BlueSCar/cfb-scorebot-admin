@@ -797,7 +797,41 @@ export interface WeatherCondition {
   id: number;
 }
 
+export interface CoreRatings {
+  defense: number;
+  defensePlays: number;
+  modelVersion: string;
+  offense: number;
+  offensePlays: number;
+  overall: number;
+  teamId: number;
+  throughSeasonType: SeasonType;
+  throughWeek: number;
+  updatedAt: Generated<Timestamp>;
+  year: number;
+}
+
+export interface GameWatchability {
+  awayTeamId: number;
+  calibrationSha256: string;
+  competitiveness: number;
+  gameId: number;
+  generatedAt: Timestamp;
+  homeTeamId: number;
+  methodVersion: string;
+  neutralSite: boolean;
+  quality: number;
+  score: number;
+  season: number;
+  sourceModelVersion: string;
+  sourceThroughWeek: number;
+  sourceUpdatedAt: Timestamp;
+  week: number;
+}
+
 export interface DB {
+  coreRatings: CoreRatings;
+  gameWatchability: GameWatchability;
   adjustedPlayerMetrics: AdjustedPlayerMetrics;
   adjustedTeamMetrics: AdjustedTeamMetrics;
   athlete: Athlete;

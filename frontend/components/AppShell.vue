@@ -119,7 +119,12 @@ onBeforeUnmount(() => {
               <i class="pi pi-user" aria-hidden="true" />
               <span>{{ displayName }}</span>
             </span>
-            <Button text icon="pi pi-sign-out" label="Sign Out" @click="logout" />
+            <Button
+              text
+              icon="pi pi-sign-out"
+              label="Sign Out"
+              @click="logout"
+            />
           </template>
           <Button
             v-else
@@ -324,8 +329,7 @@ onBeforeUnmount(() => {
   gap: 1.3rem;
   overflow-y: auto;
   border-right: 1px solid rgba(255, 255, 255, 0.08);
-  background:
-    linear-gradient(160deg, rgba(30, 145, 62, 0.16), transparent 42%),
+  background: linear-gradient(160deg, rgba(30, 145, 62, 0.16), transparent 42%),
     var(--cfbd-logo-navy);
   padding: 1.2rem 1rem;
 }

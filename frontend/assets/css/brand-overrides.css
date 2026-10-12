@@ -1,8 +1,8 @@
 :root {
-  --rs-font-sans:
-    'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --rs-font-mono:
-    'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --rs-font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
+    sans-serif;
+  --rs-font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas,
+    monospace;
 
   --cfbd-field-green: #1e913e;
   --cfbd-field-green-700: #177033;
@@ -74,8 +74,7 @@ a.p-button {
 #__nuxt {
   min-height: 100vh;
   margin: 0;
-  background:
-    linear-gradient(
+  background: linear-gradient(
       135deg,
       rgba(30, 145, 62, 0.08) 0 1px,
       transparent 1px 34px

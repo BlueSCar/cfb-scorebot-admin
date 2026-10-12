@@ -11,6 +11,8 @@ export default NuxtAuthHandler({
   providers: [
     // @ts-expect-error
     DiscordProvider.default({
+      // Discord includes this issuer in its OAuth callback's iss parameter.
+      issuer: 'https://discord.com',
       clientId: runtimeConfig.discordClientId,
       clientSecret: runtimeConfig.discordClientSecret,
       userinfo: {

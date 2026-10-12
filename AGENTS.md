@@ -1,6 +1,7 @@
 # AGENTS.md - Development Guidelines
 
 ## Build/Lint/Test Commands
+
 - Build: `pnpm build` (builds both frontend and backend)
 - Dev: `pnpm dev` (runs both frontend and backend in dev mode)
 - Lint: `pnpm lint` or `pnpm lint:fix` (ESLint for entire project)
@@ -10,6 +11,7 @@
 - Tests: Currently no test setup (shows "Error: no test specified")
 
 ## Code Style
+
 - **Imports**: Use ES6 imports, group by external/internal, 'dotenv/config' and 'reflect-metadata' first in backend
 - **Formatting**: Prettier with single quotes, semicolons, trailing commas, 80 char line width
 - **Types**: TypeScript strict mode, use explicit types for exports, avoid `@ts-ignore` where possible
@@ -20,6 +22,7 @@
 - **Database**: Kysely for SQL, camelCase columns via kysely-codegen
 
 ## Structure
+
 - Monorepo with pnpm workspaces (backend/, frontend/)
 - Backend: Express + TypeScript + Kysely
 - Frontend: Nuxt 3 + Vue 3 + PrimeVue + TypeScript

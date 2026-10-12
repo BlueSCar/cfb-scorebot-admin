@@ -76,7 +76,9 @@ const lastSavedText = computed(() => {
       <i class="pi pi-hashtag" aria-hidden="true" />
       <div>
         <span>Tracked Games</span>
-        <strong>{{ trackedCount }} of {{ configStore.gamesList.length }}</strong>
+        <strong
+          >{{ trackedCount }} of {{ configStore.gamesList.length }}</strong
+        >
       </div>
     </div>
     <div class="summary-item">

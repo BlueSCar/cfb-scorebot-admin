@@ -61,8 +61,7 @@ const handleSignIn = async (): Promise<void> => {
   overflow: hidden;
   border: 1px solid var(--surface-border);
   border-radius: 8px;
-  background:
-    linear-gradient(135deg, rgba(30, 145, 62, 0.12), transparent 45%),
+  background: linear-gradient(135deg, rgba(30, 145, 62, 0.12), transparent 45%),
     var(--p-content-background);
   box-shadow: 0 18px 42px rgba(4, 19, 41, 0.08);
   padding: clamp(1.25rem, 3vw, 2rem);
