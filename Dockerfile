@@ -12,12 +12,12 @@ RUN pnpm run -r build
 RUN pnpm deploy --filter=scorebot-admin-backend --prod /prod/backend
 RUN pnpm deploy --filter=scorebot-admin-frontend --prod /prod/frontend
 
-FROM base as backend
+FROM base AS backend
 COPY --from=build /prod/backend /prod/backend
 WORKDIR /prod/backend
 CMD [ "pnpm", "start" ]
 
-FROM base as frontend
+FROM base AS frontend
 COPY --from=build /prod/frontend /prod/frontend
 WORKDIR /prod/frontend
 CMD [ "pnpm", "start" ]
